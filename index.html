@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AuditTrail GRC — Plataforma de Auditoria Forense & Governança ERP</title>
+    <title>Auditoria de LOGS by Marcus — Plataforma de Governança & Perícia ERP</title>
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -12,9 +12,9 @@
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['var(--font-sans)', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
-                        display: ['var(--font-display)', 'var(--font-sans)', 'sans-serif'],
-                        mono: ['var(--font-mono)', 'monospace'],
+                        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                        display: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
                     },
                     colors: {
                         obsidian: {
@@ -37,200 +37,53 @@
         }
     </script>
 
-    <!-- Google Fonts: Curated Enterprise & Financial Audit Typography Suite -->
+    <!-- Google Font: Inter (Padrão Exclusivo) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fira+Code:wght@400;500;600&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&family=Public+Sans:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- FontAwesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-    <!-- SheetJS (xlsx) -->
+    <!-- Bibliotecas Externas: SheetJS, Chart.js, jsPDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <!-- Chart.js 4 -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-    <!-- jsPDF & AutoTable -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
-    <style>
-        :root {
-            --font-sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-            --font-display: 'DM Sans', 'IBM Plex Sans', sans-serif;
-            --font-mono: 'IBM Plex Mono', monospace;
-        }
-        * {
-            box-sizing: border-box;
-        }
-        body {
-            background-color: #F8FAFC;
-            color: #0F172A;
-            font-family: var(--font-sans);
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            font-feature-settings: "cv02", "cv03", "cv04", "cv11", "tnum";
-            letter-spacing: -0.006em;
-        }
-        h1, h2, h3, h4, .font-display-kpi {
-            font-family: var(--font-display);
-            letter-spacing: -0.02em;
-        }
-        code, pre, .font-mono {
-            font-family: var(--font-mono);
-            font-variant-numeric: tabular-nums;
-            letter-spacing: -0.01em;
-        }
-        .tabular-nums {
-            font-variant-numeric: tabular-nums;
-        }
-        /* Enterprise Card */
-        .surface-card {
-            background-color: #FFFFFF;
-            border: 1px solid #E2E8F0;
-            border-radius: 0.5rem;
-            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
-        }
-        .surface-card-interactive {
-            transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
-        }
-        .surface-card-interactive:hover {
-            border-color: #CBD5E1;
-            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
-        }
-        /* Semantic Badges (Muted Enterprise Tokens) */
-        .pill-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.35rem;
-            padding: 0.15rem 0.5rem;
-            border-radius: 0.375rem;
-            font-size: 11px;
-            font-weight: 600;
-            line-height: 1.3;
-            letter-spacing: 0.01em;
-            white-space: nowrap;
-        }
-        .pill-crimson {
-            background-color: #FFF1F2;
-            color: #BE123C;
-            border: 1px solid #FECDD3;
-        }
-        .pill-amber {
-            background-color: #FFFBEB;
-            color: #B45309;
-            border: 1px solid #FDE68A;
-        }
-        .pill-emerald {
-            background-color: #ECFDF5;
-            color: #047857;
-            border: 1px solid #A7F3D0;
-        }
-        .pill-indigo {
-            background-color: #EFF6FF;
-            color: #1D4ED8;
-            border: 1px solid #BFDBFE;
-        }
-        .pill-slate {
-            background-color: #F1F5F9;
-            color: #334155;
-            border: 1px solid #CBD5E1;
-        }
-
-        /* Sidebar Navigation Styling */
-        .sidebar-nav-btn {
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            width: 100%;
-            padding: 0.55rem 0.75rem;
-            border-radius: 0.375rem;
-            font-size: 0.8125rem;
-            font-weight: 500;
-            color: #94A3B8;
-            transition: all 0.15s ease;
-        }
-        .sidebar-nav-btn:hover {
-            color: #F8FAFC;
-            background-color: rgba(30, 41, 59, 0.55);
-        }
-        .sidebar-nav-btn.active {
-            color: #FFFFFF;
-            background-color: #1E293B;
-            font-weight: 600;
-        }
-        .sidebar-nav-btn.active::before {
-            content: '';
-            position: absolute;
-            left: -12px;
-            top: 6px;
-            bottom: 6px;
-            width: 3px;
-            border-radius: 0 3px 3px 0;
-            background-color: #38BDF8;
-        }
-
-        /* High-Density Table Styling */
-        .enterprise-table th {
-            background-color: #F8FAFC;
-            color: #475569;
-            font-family: var(--font-sans);
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.055em;
-            border-bottom: 1px solid #E2E8F0;
-            user-select: none;
-        }
-        .enterprise-table td {
-            border-bottom: 1px solid #F1F5F9;
-            line-height: 1.45;
-            font-variant-numeric: tabular-nums;
-        }
-        .enterprise-table tr:last-child td {
-            border-bottom: none;
-        }
-
-        /* Subtle Custom Scrollbars */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #CBD5E1;
-            border-radius: 3px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94A3B8;
-        }
-    </style>
+    <!-- Estilos Corporativos Modulares -->
+    <link rel="stylesheet" href="css/styles.css">
 </head>
 <body class="min-h-screen flex flex-col lg:flex-row bg-canvas text-slate-900 selection:bg-brand-100 selection:text-brand-700">
 
     <!-- Notification Toast Stack -->
-    <div id="toast-stack" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
+    <div id="toast-stack" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none" aria-live="polite"></div>
+
+    <!-- Mobile Sidebar Backdrop Overlay -->
+    <div id="sidebar-backdrop" onclick="toggleSidebar(false)" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-30 hidden lg:hidden"></div>
 
     <!-- ===================================================================== -->
-    <!-- LEFT SIDEBAR NAVIGATION (264px Fixed Obsidian Slate)                  -->
+    <!-- LEFT SIDEBAR NAVIGATION (Fixed Obsidian Slate)                        -->
     <!-- ===================================================================== -->
-    <aside class="w-full lg:w-[264px] lg:fixed lg:inset-y-0 lg:left-0 bg-obsidian-950 text-slate-300 flex flex-col border-b lg:border-b-0 lg:border-r border-obsidian-800 z-30 select-none shrink-0">
+    <aside id="sidebar-drawer" class="fixed inset-y-0 left-0 w-[264px] bg-obsidian-950 text-slate-300 flex flex-col border-r border-obsidian-800 z-40 select-none shrink-0 lg:translate-x-0">
         <!-- Brand Header -->
-        <div class="h-14 px-4 flex items-center justify-between border-b border-obsidian-800">
-            <div class="flex items-center gap-2.5">
-                <div class="w-7 h-7 rounded bg-gradient-to-b from-sky-400 to-blue-600 flex items-center justify-center text-white shadow-sm">
+        <div class="h-14 px-3 flex items-center justify-between border-b border-obsidian-800">
+            <div class="flex items-center gap-2 min-w-0">
+                <div class="w-7 h-7 rounded bg-gradient-to-b from-sky-400 to-blue-600 flex items-center justify-center text-white shadow-sm shrink-0">
                     <i class="fa-solid fa-shield-halved text-xs"></i>
                 </div>
-                <div>
-                    <div class="flex items-center gap-1.5">
-                        <span class="text-white font-semibold text-sm tracking-tight">AuditTrail</span>
-                        <span class="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-obsidian-800 text-sky-400 border border-slate-700/80 font-medium">GRC</span>
+                <div class="min-w-0">
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                        <span class="text-white font-semibold text-xs tracking-tight truncate" title="Auditoria de LOGS">Auditoria de LOGS</span>
+                        <span class="text-[9px] font-mono px-1 py-0.2 rounded bg-obsidian-800 text-sky-400 border border-slate-700/80 font-medium shrink-0">bby Marcus</span>
                     </div>
                 </div>
             </div>
-            <span class="text-[11px] font-mono text-slate-500">v5.2</span>
+            <div class="flex items-center gap-1 shrink-0">
+                <button onclick="toggleSidebar()" class="text-slate-400 hover:text-white p-1.5 rounded hover:bg-obsidian-800 transition cursor-pointer" title="Recolher Menu Lateral" aria-label="Recolher Menu Lateral">
+                    <i class="fa-solid fa-angles-left text-xs"></i>
+                </button>
+            </div>
         </div>
 
         <!-- Active Investigation Case Summary Box -->
@@ -293,35 +146,35 @@
             <div>
                 <div class="px-2 mb-1.5 text-[10px] font-mono uppercase tracking-wider text-slate-500 font-semibold">Atalhos de Evidência</div>
                 <div class="space-y-1">
-                    <button onclick="inspectAnomaly('self_audit')" class="w-full text-left px-2.5 py-1.5 rounded text-xs text-slate-400 hover:text-white hover:bg-obsidian-800/60 flex items-center justify-between transition">
+                    <button onclick="inspectAnomaly('self_audit')" class="w-full text-left px-2.5 py-1.5 rounded text-xs text-slate-400 hover:text-white hover:bg-obsidian-800/60 flex items-center justify-between transition cursor-pointer">
                         <span class="flex items-center gap-2 truncate">
                             <span class="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0"></span>
                             <span class="truncate">Autoauditoria de Log</span>
                         </span>
                         <span class="font-mono text-[10px] text-slate-500 tabular-nums">2</span>
                     </button>
-                    <button onclick="inspectAnomaly('supplier_bypass')" class="w-full text-left px-2.5 py-1.5 rounded text-xs text-slate-400 hover:text-white hover:bg-obsidian-800/60 flex items-center justify-between transition">
+                    <button onclick="inspectAnomaly('supplier_bypass')" class="w-full text-left px-2.5 py-1.5 rounded text-xs text-slate-400 hover:text-white hover:bg-obsidian-800/60 flex items-center justify-between transition cursor-pointer">
                         <span class="flex items-center gap-2 truncate">
                             <span class="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0"></span>
                             <span class="truncate">Bypass NFe Fornecedor</span>
                         </span>
                         <span class="font-mono text-[10px] text-slate-500 tabular-nums">9</span>
                     </button>
-                    <button onclick="inspectAnomaly('physical_reversal')" class="w-full text-left px-2.5 py-1.5 rounded text-xs text-slate-400 hover:text-white hover:bg-obsidian-800/60 flex items-center justify-between transition">
+                    <button onclick="inspectAnomaly('physical_reversal')" class="w-full text-left px-2.5 py-1.5 rounded text-xs text-slate-400 hover:text-white hover:bg-obsidian-800/60 flex items-center justify-between transition cursor-pointer">
                         <span class="flex items-center gap-2 truncate">
                             <span class="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0"></span>
                             <span class="truncate">Estornos Físicos Docas</span>
                         </span>
                         <span class="font-mono text-[10px] text-slate-500 tabular-nums">8</span>
                     </button>
-                    <button onclick="inspectAnomaly('manual_price')" class="w-full text-left px-2.5 py-1.5 rounded text-xs text-slate-400 hover:text-white hover:bg-obsidian-800/60 flex items-center justify-between transition">
+                    <button onclick="inspectAnomaly('manual_price')" class="w-full text-left px-2.5 py-1.5 rounded text-xs text-slate-400 hover:text-white hover:bg-obsidian-800/60 flex items-center justify-between transition cursor-pointer">
                         <span class="flex items-center gap-2 truncate">
                             <span class="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0"></span>
                             <span class="truncate">Preços Manuais (Origem M)</span>
                         </span>
                         <span class="font-mono text-[10px] text-slate-500 tabular-nums">943</span>
                     </button>
-                    <button onclick="inspectAnomaly('clearance')" class="w-full text-left px-2.5 py-1.5 rounded text-xs text-slate-400 hover:text-white hover:bg-obsidian-800/60 flex items-center justify-between transition">
+                    <button onclick="inspectAnomaly('clearance')" class="w-full text-left px-2.5 py-1.5 rounded text-xs text-slate-400 hover:text-white hover:bg-obsidian-800/60 flex items-center justify-between transition cursor-pointer">
                         <span class="flex items-center gap-2 truncate">
                             <span class="w-1.5 h-1.5 rounded-full bg-sky-400 shrink-0"></span>
                             <span class="truncate">Liberações de Alçada</span>
@@ -334,15 +187,15 @@
             <!-- Live Spreadsheet Ingestion Box -->
             <div class="pt-2">
                 <div class="p-3 rounded-md bg-obsidian-900 border border-dashed border-slate-700 hover:border-sky-500/60 transition text-center" id="sidebar-dropzone">
-                    <i class="fa-solid fa-file-Arrow-up text-slate-400 text-sm mb-1"></i>
+                    <i class="fa-solid fa-file-arrow-up text-slate-400 text-sm mb-1"></i>
                     <p class="text-[11px] font-medium text-slate-200">Importar Planilha (.xlsx / .csv)</p>
-                    <p class="text-[10px] text-slate-500 mt-0.5 leading-relaxed">Arraste <code class="text-slate-300">LOG CELSO.xlsx</code> ou clique abaixo para processar 100% das linhas</p>
+                    <p class="text-[10px] text-slate-500 mt-0.5 leading-relaxed">Arraste a planilha de auditoria ou selecione no seu computador</p>
                     <label for="xlsx-file-input" class="mt-2 inline-flex items-center justify-center gap-1.5 w-full py-1.5 px-2.5 rounded text-[11px] font-medium bg-obsidian-800 hover:bg-slate-700 text-white border border-slate-700 cursor-pointer transition">
                         <i class="fa-regular fa-folder-open text-sky-400"></i>
                         <span>Selecionar Arquivo</span>
                         <input type="file" id="xlsx-file-input" accept=".xlsx,.xls,.csv" class="hidden">
                     </label>
-                    <button id="btn-restore-default" onclick="restoreDefaultDataset()" class="hidden mt-1.5 w-full py-1 px-2 rounded text-[10px] font-mono text-slate-400 hover:text-white bg-obsidian-950 border border-obsidian-800 transition">
+                    <button id="btn-restore-default" onclick="restoreDefaultDataset()" class="hidden mt-1.5 w-full py-1 px-2 rounded text-[10px] font-mono text-slate-400 hover:text-white bg-obsidian-950 border border-obsidian-800 transition cursor-pointer">
                         Restaurar Base Oficial
                     </button>
                 </div>
@@ -359,11 +212,14 @@
     <!-- ===================================================================== -->
     <!-- MAIN WORKSPACE AREA                                                   -->
     <!-- ===================================================================== -->
-    <div class="flex-1 lg:pl-[264px] flex flex-col min-w-0">
+    <div id="main-content-wrapper" class="flex-1 lg:pl-[264px] flex flex-col min-w-0 transition-all duration-300">
 
         <!-- Sticky Top Utility Bar -->
         <header class="h-14 bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 sm:px-6 flex items-center justify-between gap-2 sticky top-0 z-20">
             <div class="flex items-center gap-3 min-w-0">
+                <button onclick="toggleSidebar()" class="p-1.5 -ml-1 text-slate-600 hover:text-slate-900 rounded-md hover:bg-slate-100 transition cursor-pointer flex items-center gap-1.5" title="Recolher / Expandir Menu Lateral" aria-label="Recolher / Expandir Menu Lateral">
+                    <i class="fa-solid fa-bars text-sm"></i>
+                </button>
                 <h1 id="topbar-view-title" class="text-sm font-semibold text-slate-900 truncate tracking-tight">1. Visão Executiva & Telemetria Forense</h1>
                 <span class="hidden sm:inline-block text-slate-300">|</span>
                 <span class="hidden xl:inline-flex items-center gap-1.5 text-xs text-slate-500 font-mono tabular-nums">
@@ -373,28 +229,23 @@
             </div>
 
             <div class="flex items-center gap-2 shrink-0">
-                <!-- Live Enterprise Font Profile Switcher -->
-                <div class="hidden md:flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1 shadow-2xs">
-                    <i class="fa-solid fa-font text-[11px] text-brand-600" title="Seletor de Tipografia Corporativa"></i>
-                    <label for="font-profile-select" class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 select-none">Tipografia:</label>
-                    <select id="font-profile-select" onchange="switchTypographyProfile(this.value)" class="bg-transparent text-xs font-medium text-slate-800 focus:outline-none cursor-pointer pr-1">
-                        <option value="ibm" selected>IBM Plex Sans + DM Sans + Plex Mono (Big Four / Finanças)</option>
-                        <option value="inter">Inter + DM Sans + Fira Code (Linear / Stripe UI)</option>
-                        <option value="dm">DM Sans + Space Mono (Vercel / Modern Tech)</option>
-                        <option value="public">Public Sans + Roboto Mono (Governo / Compliance Federal)</option>
-                    </select>
-                </div>
 
-                <!-- Export Enriched CSV -->
-                <button onclick="exportEnrichedCSV()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 shadow-2xs transition">
-                    <i class="fa-solid fa-file-csv text-slate-500"></i>
-                    <span class="hidden sm:inline">Exportar CSV</span>
+                <!-- Exportar Planilha Excel (.xlsx) -->
+                <button onclick="exportNativeXLSX()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 shadow-2xs transition cursor-pointer" title="Exportar dados filtrados em formato Excel .xlsx nativo">
+                    <i class="fa-solid fa-file-excel text-emerald-600"></i>
+                    <span class="hidden sm:inline">Excel (.xlsx)</span>
                 </button>
 
-                <!-- Open PDF Report Modal -->
-                <button onclick="openPdfModal()" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-xs font-semibold text-white bg-brand-600 hover:bg-brand-700 shadow-xs transition">
+                <!-- Exportar CSV Enriquecido -->
+                <button onclick="exportEnrichedCSV()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 shadow-2xs transition cursor-pointer">
+                    <i class="fa-solid fa-file-csv text-slate-500"></i>
+                    <span class="hidden sm:inline">CSV</span>
+                </button>
+
+                <!-- Emitir Parecer Técnico Pericial (PDF) -->
+                <button onclick="openPdfModal()" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-xs font-semibold text-white bg-brand-600 hover:bg-brand-700 shadow-xs transition cursor-pointer">
                     <i class="fa-solid fa-file-pdf"></i>
-                    <span>Exportar Parecer Pericial (PDF)</span>
+                    <span>Emitir Parecer Pericial (PDF)</span>
                 </button>
             </div>
         </header>
@@ -403,11 +254,11 @@
         <main class="p-4 sm:p-6 max-w-[1600px] w-full mx-auto space-y-5 flex-1">
 
             <!-- ================================================================= -->
-            <!-- COMPACT FORENSIC IDENTITY & ENDPOINT FINGERPRINT BANNER           -->
+            <!-- IDENTIFICAÇÃO FORENSE DO ALVO & TERMINAL                          -->
             <!-- ================================================================= -->
             <section class="surface-card p-4">
                 <div class="grid grid-cols-1 xl:grid-cols-12 gap-4 items-center">
-                    <!-- User Identity -->
+                    <!-- Usuário -->
                     <div class="xl:col-span-4 flex items-center gap-3.5">
                         <div class="w-11 h-11 rounded-lg bg-slate-900 text-white font-mono font-semibold text-sm flex items-center justify-center shrink-0 shadow-xs">
                             CB
@@ -422,7 +273,7 @@
                         </div>
                     </div>
 
-                    <!-- Endpoint & OS Fingerprint Metadata -->
+                    <!-- Hostname, SO & Assinatura de Hardware -->
                     <div class="xl:col-span-8 grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 xl:pt-0 border-t xl:border-t-0 xl:border-l border-slate-200 xl:pl-5">
                         <div class="bg-slate-50/80 rounded-md p-2.5 border border-slate-200/80">
                             <div class="flex items-center justify-between text-[10px] font-semibold uppercase tracking-wider text-slate-400">
@@ -458,13 +309,12 @@
             </section>
 
             <!-- ================================================================= -->
-            <!-- VIEW 1: VISÃO EXECUTIVA & TELEMETRIA (OVERVIEW)                   -->
+            <!-- VIEW 1: VISÃO EXECUTIVA & TELEMETRIA                              -->
             <!-- ================================================================= -->
             <div id="view-overview" class="view-section space-y-5">
-
-                <!-- 4 High-Craft KPI Cards -->
+                <!-- 4 KPI Cards -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-                    <!-- KPI 1: Total Records vs Human Transactions -->
+                    <!-- KPI 1 -->
                     <div class="surface-card p-4 flex flex-col justify-between">
                         <div>
                             <div class="flex items-center justify-between">
@@ -479,14 +329,13 @@
                         </div>
                     </div>
 
-                    <!-- KPI 2: Operation Breakdown -->
+                    <!-- KPI 2 -->
                     <div class="surface-card p-4 flex flex-col justify-between">
                         <div>
                             <div class="flex items-center justify-between">
                                 <span class="text-xs font-medium text-slate-500">Perfil de Operações</span>
                                 <span class="text-[11px] font-mono text-slate-400">44 entidades</span>
                             </div>
-                            <!-- Segmented Bar -->
                             <div class="w-full h-2 rounded-full bg-slate-100 overflow-hidden flex mt-3">
                                 <div id="bar-op-del" class="bg-rose-600 h-full" style="width: 49.81%" title="Exclusão: 49,81%"></div>
                                 <div id="bar-op-edit" class="bg-amber-500 h-full" style="width: 31.65%" title="Edição: 31,65%"></div>
@@ -500,7 +349,7 @@
                         </div>
                     </div>
 
-                    <!-- KPI 3: Business Unit Coverage -->
+                    <!-- KPI 3 -->
                     <div class="surface-card p-4 flex flex-col justify-between">
                         <div>
                             <div class="flex items-center justify-between">
@@ -510,12 +359,12 @@
                             <div class="text-2xl font-bold font-display-kpi text-slate-900 mt-2 tabular-nums tracking-tight" id="kpi-units-total">32 Filiais</div>
                         </div>
                         <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs">
-                            <span class="text-slate-500">Top Filiais Operacionais:</span>
+                            <span class="text-slate-500">Top Filiais:</span>
                             <span class="font-mono text-slate-800 font-medium">0076, 0074, 0077</span>
                         </div>
                     </div>
 
-                    <!-- KPI 4: Forensic Risk Index -->
+                    <!-- KPI 4 -->
                     <div class="surface-card p-4 flex flex-col justify-between border-l-4 border-l-rose-600">
                         <div>
                             <div class="flex items-center justify-between">
@@ -526,7 +375,7 @@
                         </div>
                         <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs">
                             <span class="text-slate-500">Autoauditoria + Bypass NFe</span>
-                            <button onclick="switchView('view-risk')" class="text-brand-600 hover:text-brand-700 font-semibold inline-flex items-center gap-1">
+                            <button onclick="switchView('view-risk')" class="text-brand-600 hover:text-brand-700 font-semibold inline-flex items-center gap-1 cursor-pointer">
                                 <span>Ver Matriz</span>
                                 <i class="fa-solid fa-arrow-right text-[10px]"></i>
                             </button>
@@ -534,9 +383,8 @@
                     </div>
                 </div>
 
-                <!-- Primary Charts Row: Daily Timeline + Hourly Rhythm -->
+                <!-- Gráficos Principais: Volume Diário & Curva por Hora -->
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                    <!-- Daily Volume vs Human Transactions -->
                     <div class="lg:col-span-7 surface-card p-4">
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
                             <div>
@@ -544,8 +392,8 @@
                                 <p class="text-xs text-slate-500">Picos em 19/10 (10.716) e 20/10 (12.404) concentram 59,2% do impacto sistêmico</p>
                             </div>
                             <div class="flex items-center gap-3 text-[11px] font-mono">
-                                <span class="flex items-center gap-1.5 text-slate-600"><span class="w-2.5 h-2.5 rounded-xs bg-brand-600 inline-block"></span>Registros Banco</span>
-                                <span class="flex items-center gap-1.5 text-slate-600"><span class="w-2.5 h-0.5 bg-rose-600 inline-block"></span>Transações (Cliques)</span>
+                                <span class="flex items-center gap-1.5 text-slate-600"><span class="w-2.5 h-2.5 rounded-xs bg-brand-600 inline-block"></span>Banco</span>
+                                <span class="flex items-center gap-1.5 text-slate-600"><span class="w-2.5 h-0.5 bg-rose-600 inline-block"></span>Transações</span>
                             </div>
                         </div>
                         <div class="h-64 mt-3">
@@ -553,12 +401,11 @@
                         </div>
                     </div>
 
-                    <!-- Hourly Operational Rhythm -->
                     <div class="lg:col-span-5 surface-card p-4">
                         <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                             <div>
-                                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Curva de Ritmo Operacional por Hora (07h–18h)</h3>
-                                <p class="text-xs text-slate-500">Intervalo intrajornada (12h–13h) e pico às 15h (10.505 registros)</p>
+                                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Ritmo Operacional por Hora (07h–18h)</h3>
+                                <p class="text-xs text-slate-500">Pausa intrajornada (12h–13h) e pico às 15h (10.505 registros)</p>
                             </div>
                             <span class="pill-badge pill-slate font-mono">Pico 15h</span>
                         </div>
@@ -568,9 +415,8 @@
                     </div>
                 </div>
 
-                <!-- Secondary Charts Row: Business Units & Top Entities -->
+                <!-- Gráficos Secundários: Unidades de Negócio & Top Entidades -->
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                    <!-- Top Business Units -->
                     <div class="lg:col-span-5 surface-card p-4">
                         <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                             <div>
@@ -584,11 +430,10 @@
                         </div>
                     </div>
 
-                    <!-- Top Database Entities -->
                     <div class="lg:col-span-7 surface-card p-4">
                         <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                             <div>
-                                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Entidades de Banco de Dados Mais Afetadas (Top 12)</h3>
+                                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Entidades Mais Afetadas no Banco (Top 10)</h3>
                                 <p class="text-xs text-slate-500">Predominância de recálculo de custo fiscal, itens de nota fiscal, ICMS e precificação</p>
                             </div>
                             <span class="text-[11px] font-mono text-slate-400">44 entidades</span>
@@ -601,11 +446,9 @@
             </div>
 
             <!-- ================================================================= -->
-            <!-- VIEW 2: MATRIZ DE RISCOS & ACHADOS FORENSES (RISK MATRIX)         -->
+            <!-- VIEW 2: MATRIZ DE RISCOS & ACHADOS FORENSES                       -->
             <!-- ================================================================= -->
             <div id="view-risk" class="view-section hidden space-y-5">
-
-                <!-- Executive Summary Banner for Forensic Anomalies -->
                 <div class="surface-card p-4 bg-gradient-to-r from-slate-900 to-slate-800 text-white border-none">
                     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div class="space-y-1">
@@ -615,11 +458,11 @@
                             </div>
                             <h3 class="text-base font-bold">7 Classes de Eventos Sensíveis Detectadas na Trilha de Auditoria</h3>
                             <p class="text-xs text-slate-300 max-w-3xl">
-                                Clique em <strong>"Inspecionar Evidências"</strong> em qualquer cartão abaixo para abrir imediatamente os registros correspondentes no Explorador Forense com decomposição lado a lado (Antes vs. Depois).
+                                Clique em <strong>"Inspecionar Evidências"</strong> em qualquer cartão abaixo para abrir imediatamente os registros correspondentes no Explorador Forense com decomposição lado a lado.
                             </p>
                         </div>
                         <div class="flex items-center gap-2 shrink-0">
-                            <button onclick="openPdfModal()" class="px-3.5 py-2 rounded-md text-xs font-semibold bg-white text-slate-900 hover:bg-slate-100 transition shadow-xs inline-flex items-center gap-1.5">
+                            <button onclick="openPdfModal()" class="px-3.5 py-2 rounded-md text-xs font-semibold bg-white text-slate-900 hover:bg-slate-100 transition shadow-xs inline-flex items-center gap-1.5 cursor-pointer">
                                 <i class="fa-solid fa-file-shield text-brand-600"></i>
                                 <span>Gerar Parecer destes Achados</span>
                             </button>
@@ -627,21 +470,18 @@
                     </div>
                 </div>
 
-                <!-- 7 Forensic Finding Cards Grid -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4" id="forensic-cards-grid">
-                    <!-- Populated via JS -->
-                </div>
+                <!-- Grade de Cartões de Achados Forenses -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4" id="forensic-cards-grid"></div>
 
-                <!-- Detailed Evidence Tables: Price Changes & Direct Stock Edits -->
+                <!-- Tabelas Detalhadas de Amostra Forense -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    <!-- Manual Price Reductions Table -->
                     <div class="surface-card overflow-hidden">
                         <div class="p-4 border-b border-slate-200 flex items-center justify-between">
                             <div>
-                                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-800">Amostra Forense: Alterações Manuais de Preço (Origem = M)</h4>
+                                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-800">Amostra: Alterações Manuais de Preço (Origem = M)</h4>
                                 <p class="text-[11px] text-slate-500">943 registros em <code>AlteracaoPreco</code> e 1.897 em <code>PrecoEmbalagemUnidadeNegocio</code></p>
                             </div>
-                            <button onclick="inspectAnomaly('manual_price')" class="text-xs font-semibold text-brand-600 hover:underline">Ver todos</button>
+                            <button onclick="inspectAnomaly('manual_price')" class="text-xs font-semibold text-brand-600 hover:underline cursor-pointer">Ver todos</button>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-left enterprise-table">
@@ -660,14 +500,13 @@
                         </div>
                     </div>
 
-                    <!-- Invoice Quantity / Cost / Stock Adjustments -->
                     <div class="surface-card overflow-hidden">
                         <div class="p-4 border-b border-slate-200 flex items-center justify-between">
                             <div>
-                                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-800">Amostra Forense: Edições Diretas de NFe, Custo & Estoque</h4>
+                                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-800">Amostra: Edições Diretas de NFe, Custo & Estoque</h4>
                                 <p class="text-[11px] text-slate-500">Manipulação de quantidades, custos unitários e saldos físicos</p>
                             </div>
-                            <button onclick="inspectAnomaly('invoice_stock')" class="text-xs font-semibold text-brand-600 hover:underline">Ver todos</button>
+                            <button onclick="inspectAnomaly('invoice_stock')" class="text-xs font-semibold text-brand-600 hover:underline cursor-pointer">Ver todos</button>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-left enterprise-table">
@@ -677,7 +516,7 @@
                                         <th class="py-2.5 px-2">Filial</th>
                                         <th class="py-2.5 px-2.5">Entidade</th>
                                         <th class="py-2.5 px-2.5">Atributo</th>
-                                        <th class="py-2.5 px-2.5 text-right">De $\rightarrow$ Para</th>
+                                        <th class="py-2.5 px-2.5 text-right">De &rarr; Para</th>
                                     </tr>
                                 </thead>
                                 <tbody id="table-risk-stock" class="font-mono text-xs tabular-nums"></tbody>
@@ -688,16 +527,14 @@
             </div>
 
             <!-- ================================================================= -->
-            <!-- VIEW 3: JORNADA, SESSÕES & NAVEGAÇÃO (USER FOOTPRINT)             -->
+            <!-- VIEW 3: JORNADA, SESSÕES & RASTREIO DE TELAS                      -->
             <!-- ================================================================= -->
             <div id="view-footprint" class="view-section hidden space-y-5">
-
-                <!-- 9-Day Visual Workday Timeline Ruler -->
                 <div class="surface-card overflow-hidden">
                     <div class="p-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <div>
                             <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800">Cronologia Diária de Jornada de Trabalho (14/10/2026 a 23/10/2026)</h3>
-                            <p class="text-xs text-slate-500">Mapeamento do primeiro ao último segundo de atividade por dia útil (sem registros no domingo 18/10)</p>
+                            <p class="text-xs text-slate-500">Mapeamento do primeiro ao último registro por dia útil (sem atividade em 18/10)</p>
                         </div>
                         <div class="flex items-center gap-2 text-[11px] font-mono text-slate-500">
                             <span class="inline-block w-2.5 h-2.5 rounded-xs bg-brand-600"></span> Janela de Expediente Ativo (07h às 19h)
@@ -712,7 +549,7 @@
                                     <th class="py-2.5 px-2.5">Primeiro Log</th>
                                     <th class="py-2.5 px-2.5">Último Log</th>
                                     <th class="py-2.5 px-2.5">Janela</th>
-                                    <th class="py-2.5 px-3 w-64">Régua Visual (07:00 — 19:00)</th>
+                                    <th class="py-2.5 px-3 w-64">Régua Visual (07:00 &mdash; 19:00)</th>
                                     <th class="py-2.5 px-2.5 text-right">Sessões</th>
                                     <th class="py-2.5 px-2.5 text-right">Transações</th>
                                     <th class="py-2.5 px-3 text-right">Registros</th>
@@ -723,9 +560,7 @@
                     </div>
                 </div>
 
-                <!-- Navigation Routes + Authenticated Sessions Table -->
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                    <!-- Menu Navigation Tree (AcessoRecursoSistema) -->
                     <div class="lg:col-span-6 surface-card p-4 flex flex-col justify-between">
                         <div>
                             <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
@@ -739,7 +574,6 @@
                         </div>
                     </div>
 
-                    <!-- Workstation & Session Log (SessaoUsuario / Estacao) -->
                     <div class="lg:col-span-6 surface-card p-4 flex flex-col justify-between">
                         <div>
                             <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
@@ -769,18 +603,17 @@
             </div>
 
             <!-- ================================================================= -->
-            <!-- VIEW 4: EXPLORADOR FORENSE & DIFF "ANTES VS. DEPOIS"              -->
+            <!-- VIEW 4: EXPLORADOR FORENSE & DIFF ANTES VS. DEPOIS                -->
             <!-- ================================================================= -->
             <div id="view-explorer" class="view-section hidden space-y-4">
-
-                <!-- Multi-Facet Search & Filter Bar -->
+                <!-- Barra de Filtros Multifacetada -->
                 <div class="surface-card p-3.5 space-y-3">
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-2.5">
-                        <div class="lg:col-span-4 relative">
+                        <div class="lg:col-span-3 relative">
                             <i class="fa-solid fa-magnifying-glass text-slate-400 text-xs absolute left-3 top-2.5"></i>
-                            <input id="exp-search" oninput="applyExplorerFilters()" type="text" placeholder="Buscar atributo, chave XML, motivo, valor ou ID..." class="w-full pl-8 pr-3 py-1.5 text-xs rounded-md border border-slate-200 focus:outline-none focus:border-brand-600 text-slate-800">
+                            <input id="exp-search" oninput="applyExplorerFilters()" type="text" placeholder="Buscar atributo, XML, motivo, ID..." class="w-full pl-8 pr-3 py-1.5 text-xs rounded-md border border-slate-200 focus:outline-none focus:border-brand-600 text-slate-800">
                         </div>
-                        <div class="lg:col-span-3">
+                        <div class="lg:col-span-2">
                             <select id="exp-entity" onchange="applyExplorerFilters()" class="w-full px-2.5 py-1.5 text-xs rounded-md border border-slate-200 focus:outline-none focus:border-brand-600 text-slate-700 bg-white">
                                 <option value="">Todas as Entidades</option>
                             </select>
@@ -798,14 +631,18 @@
                                 <option value="Inclusão">Inclusão</option>
                             </select>
                         </div>
+                        <div class="lg:col-span-2 flex items-center gap-1">
+                            <input type="date" id="exp-date-start" onchange="applyExplorerFilters()" class="w-1/2 px-1.5 py-1 text-xs rounded border border-slate-200 text-slate-700 bg-white" title="Data Inicial">
+                            <input type="date" id="exp-date-end" onchange="applyExplorerFilters()" class="w-1/2 px-1.5 py-1 text-xs rounded border border-slate-200 text-slate-700 bg-white" title="Data Final">
+                        </div>
                         <div class="lg:col-span-1 flex gap-1">
-                            <button onclick="resetExplorerFilters()" class="w-full py-1.5 px-2 rounded-md text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition" title="Limpar Filtros">
+                            <button onclick="resetExplorerFilters()" class="w-full py-1.5 px-2 rounded-md text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition cursor-pointer" title="Limpar Filtros">
                                 <i class="fa-solid fa-rotate-left"></i>
                             </button>
                         </div>
                     </div>
 
-                    <!-- Quick Filter Pills + Transaction Filter Indicator -->
+                    <!-- Pílulas de Atalhos Forenses -->
                     <div class="flex items-center justify-between flex-wrap gap-2 pt-2 border-t border-slate-100">
                         <div class="flex items-center gap-1.5 flex-wrap">
                             <span class="text-[10px] font-mono uppercase tracking-wider font-semibold text-slate-400 mr-1">Filtros Forenses:</span>
@@ -820,24 +657,23 @@
 
                         <div id="active-tx-pill" class="hidden items-center gap-1.5 bg-brand-50 text-brand-700 border border-brand-100 px-2.5 py-0.5 rounded text-xs font-mono">
                             <span>Transação Filtrada: <strong id="active-tx-val"></strong></span>
-                            <button onclick="clearTxFilter()" class="text-brand-700 hover:text-brand-900 ml-1"><i class="fa-solid fa-xmark"></i></button>
+                            <button onclick="clearTxFilter()" class="text-brand-700 hover:text-brand-900 ml-1 cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Split-Pane Master-Detail Forensic Inspector -->
+                <!-- Painel Split-Pane Master-Detail -->
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-
-                    <!-- Left Pane: Master Log Table (7 Cols) -->
+                    <!-- Tabela Master (Painel Esquerdo) -->
                     <div class="lg:col-span-7 surface-card overflow-hidden">
                         <div class="px-4 py-2.5 border-b border-slate-200 flex items-center justify-between bg-slate-50/50">
                             <div class="text-xs text-slate-600">
                                 Exibindo <strong id="exp-count" class="font-mono text-slate-900 tabular-nums">0</strong> registros localizados
                             </div>
                             <div class="flex items-center gap-1.5">
-                                <button onclick="changeExplorerPage(-1)" id="exp-prev" class="px-2 py-1 text-xs rounded border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 disabled:opacity-40"><i class="fa-solid fa-chevron-left"></i></button>
+                                <button onclick="changeExplorerPage(-1)" id="exp-prev" class="px-2 py-1 text-xs rounded border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 disabled:opacity-40 cursor-pointer"><i class="fa-solid fa-chevron-left"></i></button>
                                 <span id="exp-page-label" class="text-xs font-mono text-slate-600 px-2 tabular-nums">1 / 1</span>
-                                <button onclick="changeExplorerPage(1)" id="exp-next" class="px-2 py-1 text-xs rounded border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 disabled:opacity-40"><i class="fa-solid fa-chevron-right"></i></button>
+                                <button onclick="changeExplorerPage(1)" id="exp-next" class="px-2 py-1 text-xs rounded border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 disabled:opacity-40 cursor-pointer"><i class="fa-solid fa-chevron-right"></i></button>
                             </div>
                         </div>
 
@@ -858,7 +694,7 @@
                         </div>
                     </div>
 
-                    <!-- Right Pane: Structured Side-by-Side Diff Inspector (5 Cols) -->
+                    <!-- Inspetor de Diff Lado a Lado (Painel Direito) -->
                     <div class="lg:col-span-5 surface-card sticky top-20 overflow-hidden">
                         <div class="p-4 border-b border-slate-200 bg-slate-50/70 flex items-start justify-between gap-2">
                             <div>
@@ -868,12 +704,12 @@
                                 </div>
                                 <h3 id="diff-title" class="text-sm font-bold text-slate-900 mt-1 font-mono">Selecione um registro</h3>
                             </div>
-                            <button id="btn-filter-same-tx" onclick="filterByCurrentTx()" class="px-2.5 py-1.5 rounded text-[11px] font-mono font-medium bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 shadow-2xs transition shrink-0">
+                            <button id="btn-filter-same-tx" onclick="filterByCurrentTx()" class="px-2.5 py-1.5 rounded text-[11px] font-mono font-medium bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 shadow-2xs transition shrink-0 cursor-pointer">
                                 <i class="fa-solid fa-sitemap text-brand-600 mr-1"></i>Ver Cascata Tx #<span id="diff-tx-btn-label"></span>
                             </button>
                         </div>
 
-                        <!-- Record Metadata Strip -->
+                        <!-- Metadados do Registro -->
                         <div class="grid grid-cols-4 gap-2 px-4 py-2.5 bg-white border-b border-slate-200 text-[11px] font-mono tabular-nums">
                             <div>
                                 <span class="text-slate-400 block text-[10px]">Carimbo de Tempo</span>
@@ -893,7 +729,7 @@
                             </div>
                         </div>
 
-                        <!-- Diff Stats Counters -->
+                        <!-- Contadores de Diff -->
                         <div class="px-4 py-2 bg-slate-50 border-b border-slate-200 flex items-center justify-between text-[11px] font-mono">
                             <span class="text-slate-500">Decomposição <code>chave=valor</code>:</span>
                             <div class="flex items-center gap-2">
@@ -905,7 +741,7 @@
                             </div>
                         </div>
 
-                        <!-- Side-by-Side Diff Table -->
+                        <!-- Tabela de Comparação Antes vs. Depois -->
                         <div class="max-h-[460px] overflow-y-auto">
                             <table class="w-full text-left enterprise-table">
                                 <thead>
@@ -919,7 +755,6 @@
                             </table>
                         </div>
                     </div>
-
                 </div>
             </div>
 
@@ -927,19 +762,21 @@
     </div>
 
     <!-- ===================================================================== -->
-    <!-- CUSTOMIZABLE PDF REPORT GENERATOR MODAL                               -->
+    <!-- MODAL DE EMISSÃO DE PARECER PERICIAL (PDF)                            -->
     <!-- ===================================================================== -->
-    <div id="pdf-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4">
+    <div id="pdf-modal" role="dialog" aria-modal="true" aria-labelledby="pdf-modal-title" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4">
         <div class="bg-white rounded-lg border border-slate-200 shadow-xl max-w-lg w-full overflow-hidden">
             <div class="px-5 py-4 bg-obsidian-950 text-white flex items-center justify-between">
                 <div class="flex items-center gap-2.5">
                     <i class="fa-solid fa-file-pdf text-sky-400"></i>
                     <div>
-                        <h3 class="text-sm font-semibold">Emitir Parecer Técnico Pericial (PDF)</h3>
-                        <p class="text-[11px] text-slate-400">Documento formatado no padrão GRC / SOX com hash de verificação</p>
+                        <h3 id="pdf-modal-title" class="text-sm font-semibold">Emitir Parecer Técnico Pericial (PDF)</h3>
+                        <p class="text-[11px] text-slate-400">Padrão GRC / SOX com assinatura criptográfica SHA-256 real</p>
                     </div>
                 </div>
-                <button onclick="closePdfModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+                <button onclick="closePdfModal()" class="text-slate-400 hover:text-white cursor-pointer" aria-label="Fechar Modal">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
 
             <div class="p-5 space-y-4 text-xs">
@@ -970,7 +807,7 @@
                 </div>
 
                 <div>
-                    <label class="block font-semibold text-slate-700 uppercase tracking-wider text-[10px] mb-1">Classificação de Sigilo</label>
+                    <label for="pdf-classification" class="block font-semibold text-slate-700 uppercase tracking-wider text-[10px] mb-1">Classificação de Sigilo</label>
                     <select id="pdf-classification" class="w-full px-3 py-1.5 rounded border border-slate-200 text-slate-800 bg-white">
                         <option value="CONFIDENCIAL — AUDITORIA INTERNA & GRC">CONFIDENCIAL — AUDITORIA INTERNA & GRC</option>
                         <option value="ESTRITAMENTE CONFIDENCIAL — COMITÊ DE ÉTICA / DIRETORIA">ESTRITAMENTE CONFIDENCIAL — COMITÊ DE ÉTICA / DIRETORIA</option>
@@ -979,14 +816,14 @@
                 </div>
 
                 <div>
-                    <label class="block font-semibold text-slate-700 uppercase tracking-wider text-[10px] mb-1">Parecer Técnico / Notas do Auditor Responsável</label>
+                    <label for="pdf-auditor-notes" class="block font-semibold text-slate-700 uppercase tracking-wider text-[10px] mb-1">Parecer Técnico / Notas do Auditor Responsável</label>
                     <textarea id="pdf-auditor-notes" rows="3" class="w-full p-2.5 rounded border border-slate-200 text-slate-800 focus:outline-none focus:border-brand-600">A análise forense dos 39.057 registros (3.163 transações) comprova autoria contínua a partir da estação física GHFESC-WD-0096. Recomenda-se validação imediata com a gerência fiscal sobre as 9 parametrizações de fornecedores com supressão de conferência automática de NFe (ignorarConferenciaAutomaticaNotaFiscal=true) e os 8 estornos físicos de recebimento.</textarea>
                 </div>
             </div>
 
             <div class="px-5 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2">
-                <button onclick="closePdfModal()" class="px-3 py-1.5 rounded text-xs font-medium text-slate-600 hover:bg-slate-200 transition">Cancelar</button>
-                <button onclick="generateForensicPDF()" class="px-4 py-1.5 rounded text-xs font-semibold bg-brand-600 hover:bg-brand-700 text-white shadow-xs transition inline-flex items-center gap-1.5">
+                <button onclick="closePdfModal()" class="px-3 py-1.5 rounded text-xs font-medium text-slate-600 hover:bg-slate-200 transition cursor-pointer">Cancelar</button>
+                <button onclick="generateForensicPDF()" class="px-4 py-1.5 rounded text-xs font-semibold bg-brand-600 hover:bg-brand-700 text-white shadow-xs transition inline-flex items-center gap-1.5 cursor-pointer">
                     <i class="fa-solid fa-download"></i>
                     <span>Baixar PDF Agora</span>
                 </button>
@@ -995,1483 +832,14 @@
     </div>
 
     <!-- ===================================================================== -->
-    <!-- CORE APPLICATION SCRIPT & PRE-LOADED VERIFIED DATASET                 -->
+    <!-- SCRIPTS MODULARES DA APLICAÇÃO                                        -->
     <!-- ===================================================================== -->
-    <script>
-        // 1. EXACT VERIFIED TELEMETRY FROM `LOG CELSO.xlsx`
-        const INITIAL_TELEMETRY = {
-            user: "CELSO BRENO SILVA DA COSTA",
-            userId: "3800147830607",
-            erpVersion: "3.111.3.0",
-            periodStart: "14/10/2026 08:01:50",
-            periodEnd: "23/10/2026 14:35:56",
-            hostname: "GHFESC-WD-0096:Windows 10",
-            osHash: "0084-13C3#0000_0000_0000_0000_ACE4_2E00_4155_4698.",
-            mainStation: "8300002002142",
-            totalRecords: 39057,
-            totalTransactions: 3163,
-            totalUnits: 32,
-            totalEntities: 44,
-            totalSessions: 85,
-            totalMenuAccess: 189,
-            operations: {
-                "Exclusão": 19453,
-                "Edição": 12360,
-                "Inclusão": 7244
-            },
-            daily: [
-                { date: "2026-10-14", label: "14/10", weekday: "Quarta", start: "08:01:50", end: "18:02:22", span: "10h 00m", records: 3587, tx: 452, sessions: 10 },
-                { date: "2026-10-15", label: "15/10", weekday: "Quinta", start: "08:01:47", end: "17:43:28", span: "09h 41m", records: 3162, tx: 487, sessions: 1 },
-                { date: "2026-10-16", label: "16/10", weekday: "Sexta", start: "07:59:16", end: "15:50:50", span: "07h 51m", records: 2988, tx: 288, sessions: 10 },
-                { date: "2026-10-17", label: "17/10", weekday: "Sábado", start: "08:07:53", end: "12:04:19", span: "03h 56m", records: 608, tx: 124, sessions: 6 },
-                { date: "2026-10-19", label: "19/10", weekday: "Segunda", start: "08:00:57", end: "17:58:53", span: "09h 57m", records: 10716, tx: 518, sessions: 22 },
-                { date: "2026-10-20", label: "20/10", weekday: "Terça", start: "07:57:38", end: "18:00:11", span: "10h 02m", records: 12404, tx: 390, sessions: 18 },
-                { date: "2026-10-21", label: "21/10", weekday: "Quarta", start: "08:04:45", end: "18:00:22", span: "09h 55m", records: 2913, tx: 391, sessions: 5 },
-                { date: "2026-10-22", label: "22/10", weekday: "Quinta", start: "08:01:15", end: "18:21:07", span: "10h 19m", records: 1910, tx: 368, sessions: 11 },
-                { date: "2026-10-23", label: "23/10", weekday: "Sexta", start: "08:03:24", end: "14:35:56", span: "06h 32m", records: 769, tx: 145, sessions: 2 }
-            ],
-            hourly: [
-                { hour: "07h", count: 4 },
-                { hour: "08h", count: 5784 },
-                { hour: "09h", count: 5439 },
-                { hour: "10h", count: 3665 },
-                { hour: "11h", count: 4170 },
-                { hour: "12h", count: 237 },
-                { hour: "13h", count: 148 },
-                { hour: "14h", count: 4007 },
-                { hour: "15h", count: 10505 },
-                { hour: "16h", count: 3910 },
-                { hour: "17h", count: 1088 },
-                { hour: "18h", count: 100 }
-            ],
-            units: [
-                { unit: "ESC", count: 17539 },
-                { unit: "0076", count: 6673 },
-                { unit: "0074", count: 4236 },
-                { unit: "0077", count: 4145 },
-                { unit: "0082", count: 742 },
-                { unit: "0081", count: 668 },
-                { unit: "0060", count: 662 },
-                { unit: "0104", count: 577 },
-                { unit: "0093", count: 418 },
-                { unit: "0046", count: 391 },
-                { unit: "0015", count: 347 },
-                { unit: "0078", count: 337 }
-            ],
-            entities: [
-                { entity: "ItemNotaFiscal", count: 8761 },
-                { entity: "AtualizacaoCustoNotaFiscalUnidadeNegocio", count: 8698 },
-                { entity: "HistoricoCustoItemNotaFiscal", count: 5150 },
-                { entity: "HistoricoCusto", count: 2504 },
-                { entity: "CustoProduto", count: 2272 },
-                { entity: "ICMSProduto", count: 1958 },
-                { entity: "PrecoEmbalagemUnidadeNegocio", count: 1897 },
-                { entity: "ItemNotaFiscalLote", count: 1359 },
-                { entity: "AlteracaoPreco", count: 943 },
-                { entity: "ClassificacaoProduto", count: 881 },
-                { entity: "Embalagem", count: 824 },
-                { entity: "SuspendeCompraProdutoUnidadeNegocio", count: 704 }
-            ],
-            menus: [
-                { route: "Fiscal -> Nota Fiscal -> Nota Fiscal de Entrada", count: 51, risk: false },
-                { route: "Cadastro Básico -> Produto -> Produto", count: 39, risk: false },
-                { route: "Estoque -> Movimentação de Estoque", count: 18, risk: false },
-                { route: "Compra -> Recebimento Físico", count: 16, risk: false },
-                { route: "Ferramentas -> Alteração em Massa -> Produto", count: 15, risk: false },
-                { route: "Fiscal -> Nota Fiscal -> Dicionário Fiscal de Produtos", count: 7, risk: false },
-                { route: "Cadastro Básico -> Pessoa", count: 6, risk: false },
-                { route: "Compra -> Custo de Produto", count: 6, risk: false },
-                { route: "Compra -> Cadastros -> Fornecedor", count: 5, risk: false },
-                { route: "Compra -> Sugestão de Compras", count: 4, risk: false },
-                { route: "Cadastro Básico -> Produto -> Fabricante", count: 4, risk: false },
-                { route: "Relatório -> Estoque -> Estoque", count: 4, risk: false },
-                { route: "Ferramentas -> Guia de Medicamento", count: 3, risk: false },
-                { route: "Ferramentas -> Log de Operações", count: 2, risk: true }
-            ]
-        };
-
-        // 2. FORENSIC ANOMALY DEFINITIONS
-        const FORENSIC_FINDINGS = [
-            {
-                id: "self_audit",
-                title: "1. Autoauditoria no Módulo 'Log de Operações'",
-                severity: "CRÍTICO",
-                badgeClass: "pill-crimson",
-                occurrences: "2 acessos",
-                entity: "AcessoRecursoSistema",
-                searchKey: "Log de Operações",
-                summary: "O usuário auditado acessou diretamente a ferramenta de rastreamento de logs de operações do ERP em duas ocasiões distintas, sendo a última em 23/10/2026 às 14:33:06 (menos de 3 minutos antes do encerramento da trilha).",
-                timestamps: "15/10/2026 09:41:12 • 23/10/2026 14:33:06",
-                controlRef: "Controle SOX ITGC-04 (Segregação de Monitoramento de Logs)"
-            },
-            {
-                id: "supplier_bypass",
-                title: "2. Bypass de Conferência Automática de NFe em Fornecedor",
-                severity: "CRÍTICO",
-                badgeClass: "pill-crimson",
-                occurrences: "9 registros",
-                entity: "Fornecedor",
-                searchKey: "ignorarConferencia",
-                summary: "Inclusões e edições na entidade Fornecedor parametrizando ignorarConferenciaAutomaticaNotaFiscal=true e ignorarConferenciaAutomaticaNotaFiscalSequencial=true, desabilitando a trava sistêmica entre Pedido/Recebimento e NFe.",
-                timestamps: "15/10/2026 10:42:18 • 16/10/2026 14:19:05 • 21/10/2026 11:08:44",
-                controlRef: "Controle P2P-09 (Three-Way Match Fiscal & Recebimento)"
-            },
-            {
-                id: "physical_reversal",
-                title: "3. Estornos de Recebimento Físico de Mercadoria",
-                severity: "ALTO",
-                badgeClass: "pill-amber",
-                occurrences: "8 estornos",
-                entity: "EstornoItemRecebimentoFisico",
-                searchKey: "",
-                summary: "Reversão manual de itens já recebidos fisicamente nas filiais 0076 e 0023 sob as justificativas textuais 'RECEBIMENTO INCORRETO' e 'COD DIVERGENTE', impactando o saldo contábil-físico.",
-                timestamps: "14/10/2026 15:22:11 (Filial 0076) • 19/10/2026 16:11:49 (Filial 0023)",
-                controlRef: "Controle INV-03 (Estorno de Docas & Aprovação de Supervisão)"
-            },
-            {
-                id: "clearance",
-                title: "4. Liberações de Alçada em Compras Suspensas",
-                severity: "ALTO",
-                badgeClass: "pill-indigo",
-                occurrences: "3 liberações",
-                entity: "LiberacaoUsuario",
-                searchKey: "",
-                summary: "Uso de credencial para destravar recebimentos físicos de produtos com compra suspensa (liberacaoUsuarioRecebimentoFisicoSuspensoCompra) nas filiais 0039, 0077 e 0075.",
-                timestamps: "14/10/2026 11:34:19 (0039) • 19/10/2026 14:22:08 (0077) • 20/10/2026 10:09:51 (0075)",
-                controlRef: "Controle ALC-02 (Alçadas de Desbloqueio Comercial)"
-            },
-            {
-                id: "manual_price",
-                title: "5. Alterações Manuais de Preço de Venda (Origem = M)",
-                severity: "MÉDIO",
-                badgeClass: "pill-amber",
-                occurrences: "943 alterações",
-                entity: "AlteracaoPreco",
-                searchKey: "",
-                summary: "Modificações diretas de preço de venda (origem=M) e embalagens por filial (1.897 registros), incluindo reduções abaixo do preço referencial (ex: R$ 2,49 para R$ 2,25; R$ 18,90 para R$ 14,99).",
-                timestamps: "Distribuído entre 14/10/2026 e 23/10/2026 em 32 unidades",
-                controlRef: "Controle REV-06 (Governança de Pricing & Margem Bruta)"
-            },
-            {
-                id: "invoice_stock",
-                title: "6. Edição Direta de Quantidade em NFe e Saldos de Estoque",
-                severity: "MÉDIO",
-                badgeClass: "pill-amber",
-                occurrences: "97 mov. estoque",
-                entity: "ItemNotaFiscal",
-                searchKey: "",
-                summary: "Alterações em ItemNotaFiscal modificando quantidade de 12.0000 para 1.0000 com inversão proporcional de valorUnitario (26,6583 para 319,90), além de ajustes diretos na tabela Estoque (saldo 3 para 36).",
-                timestamps: "14/10/2026 08:19:45 (Tx 560351332) • 14/10/2026 10:15:02",
-                controlRef: "Controle FIS-01 (Integridade de Lançamento Fiscal de Entrada)"
-            },
-            {
-                id: "xml_upload",
-                title: "7. Importação Manual de Arquivos XML de Nota Fiscal",
-                severity: "INFORMATIVO",
-                badgeClass: "pill-emerald",
-                occurrences: "3 arquivos XML",
-                entity: "Arquivo",
-                searchKey: ".xml",
-                summary: "Upload manual de documentos fiscais eletrônicos XML com chaves de acesso de 44 dígitos diretamente para o repositório do banco de dados no Escritório Central (ESC).",
-                timestamps: "15/10/2026 09:12:40 • 19/10/2026 11:04:19 • 21/10/2026 15:40:02",
-                controlRef: "Controle FIS-08 (Rastreabilidade de Ingestão de DF-e)"
-            }
-        ];
-
-        // 3. REPRESENTATIVE REAL FORENSIC RECORDS FROM `LOG CELSO.xlsx`
-        const INITIAL_RECORDS = [
-            // Self-Audit Logs
-            {
-                dataHora: "23/10/2026 14:33:06", unNeg: "ESC", usuario: "CELSO BRENO SILVA DA COSTA",
-                entidade: "AcessoRecursoSistema", operacao: "Inclusão",
-                valorPosterior: "dataHora=23/10/2026 14:33:06.112;estacao=8300002002142;id=8300009941201;menu=Ferramentas -> Log de Operações;unidadeNegocio=3800000000001;usuario=3800147830607;",
-                valorAnterior: "", revisao: "61982210", transacao: "565198440", versao: "0"
-            },
-            {
-                dataHora: "15/10/2026 09:41:12", unNeg: "ESC", usuario: "CELSO BRENO SILVA DA COSTA",
-                entidade: "AcessoRecursoSistema", operacao: "Inclusão",
-                valorPosterior: "dataHora=15/10/2026 09:41:12.408;estacao=8300002002142;id=8300009890114;menu=Ferramentas -> Log de Operações;unidadeNegocio=3800000000001;usuario=3800147830607;",
-                valorAnterior: "", revisao: "61480112", transacao: "561001290", versao: "0"
-            },
-            // Supplier Bypass (ignorarConferenciaAutomaticaNotaFiscal=true)
-            {
-                dataHora: "15/10/2026 10:42:18", unNeg: "ESC", usuario: "CELSO BRENO SILVA DA COSTA",
-                entidade: "Fornecedor", operacao: "Edição",
-                valorPosterior: "id=3800159920144;pessoa=3800159920140;status=A;prazoEntrega=7;ignorarConferenciaAutomaticaNotaFiscal=true;ignorarConferenciaAutomaticaNotaFiscalSequencial=true;exigePedidoCompra=false;versao=2;",
-                valorAnterior: "id=3800159920144;pessoa=3800159920140;status=A;prazoEntrega=7;ignorarConferenciaAutomaticaNotaFiscal=false;ignorarConferenciaAutomaticaNotaFiscalSequencial=false;exigePedidoCompra=true;versao=1;",
-                revisao: "61488921", transacao: "561092341", versao: "2"
-            },
-            {
-                dataHora: "16/10/2026 14:19:05", unNeg: "ESC", usuario: "CELSO BRENO SILVA DA COSTA",
-                entidade: "Fornecedor", operacao: "Inclusão",
-                valorPosterior: "id=3800160045112;pessoa=3800160045110;status=A;prazoEntrega=5;ignorarConferenciaAutomaticaNotaFiscal=true;ignorarConferenciaAutomaticaNotaFiscalSequencial=true;exigePedidoCompra=false;versao=0;",
-                valorAnterior: "", revisao: "61541209", transacao: "561582910", versao: "0"
-            },
-            {
-                dataHora: "21/10/2026 11:08:44", unNeg: "ESC", usuario: "CELSO BRENO SILVA DA COSTA",
-                entidade: "Fornecedor", operacao: "Edição",
-                valorPosterior: "id=3800160098231;pessoa=3800160098200;status=A;prazoEntrega=10;ignorarConferenciaAutomaticaNotaFiscal=true;ignorarConferenciaAutomaticaNotaFiscalSequencial=true;versao=4;",
-                valorAnterior: "id=3800160098231;pessoa=3800160098200;status=A;prazoEntrega=10;ignorarConferenciaAutomaticaNotaFiscal=false;ignorarConferenciaAutomaticaNotaFiscalSequencial=false;versao=3;",
-                revisao: "61812094", transacao: "563901122", versao: "4"
-            },
-            // Physical Receipt Reversals
-            {
-                dataHora: "14/10/2026 15:22:11", unNeg: "0076", usuario: "CELSO BRENO SILVA DA COSTA",
-                entidade: "EstornoItemRecebimentoFisico", operacao: "Inclusão",
-                valorPosterior: "dataHora=14/10/2026 15:22:11.309;id=7600018829101;itemRecebimentoFisico=7600018829055;motivo=RECEBIMENTO INCORRETO;quantidadeEstornada=24.0000;usuario=3800147830607;versao=0;",
-                valorAnterior: "", revisao: "61439011", transacao: "560612980", versao: "0"
-            },
-            {
-                dataHora: "19/10/2026 16:11:49", unNeg: "0023", usuario: "CELSO BRENO SILVA DA COSTA",
-                entidade: "EstornoItemRecebimentoFisico", operacao: "Inclusão",
-                valorPosterior: "dataHora=19/10/2026 16:11:49.772;id=2300029910441;itemRecebimentoFisico=2300029910400;motivo=COD DIVERGENTE;quantidadeEstornada=6.0000;usuario=3800147830607;versao=0;",
-                valorAnterior: "", revisao: "61689201", transacao: "562781920", versao: "0"
-            },
-            {
-                dataHora: "20/10/2026 11:48:03", unNeg: "0076", usuario: "CELSO BRENO SILVA DA COSTA",
-                entidade: "EstornoItemRecebimentoFisico", operacao: "Inclusão",
-                valorPosterior: "dataHora=20/10/2026 11:48:03.118;id=7600031120981;itemRecebimentoFisico=7600031120900;motivo=RECEBIMENTO INCORRETO;quantidadeEstornada=12.0000;usuario=3800147830607;versao=0;",
-                valorAnterior: "", revisao: "61740129", transacao: "563109821", versao: "0"
-            },
-            // Clearances (LiberacaoUsuario)
-            {
-                dataHora: "14/10/2026 11:34:19", unNeg: "0039", usuario: "CELSO BRENO SILVA DA COSTA",
-                entidade: "LiberacaoUsuario", operacao: "Inclusão",
-                valorPosterior: "dataHora=14/10/2026 11:34:19.044;id=3900009182311;regra=liberacaoUsuarioRecebimentoFisicoSuspensoCompra;unidadeNegocio=3900000000001;usuario=3800147830607;versao=0;",
-                valorAnterior: "", revisao: "61420199", transacao: "560498211", versao: "0"
-            },
-            {
-                dataHora: "19/10/2026 14:22:08", unNeg: "0077", usuario: "CELSO BRENO SILVA DA COSTA",
-                entidade: "LiberacaoUsuario", operacao: "Inclusão",
-                valorPosterior: "dataHora=19/10/2026 14:22:08.512;id=7700009184510;regra=liberacaoUsuarioRecebimentoFisicoSuspensoCompra;unidadeNegocio=7700000000001;usuario=3800147830607;versao=0;",
-                valorAnterior: "", revisao: "61659012", transacao: "562519082", versao: "0"
-            },
-            {
-                dataHora: "20/10/2026 10:09:51", unNeg: "0075", usuario: "CELSO BRENO SILVA DA COSTA",
-                entidade: "LiberacaoUsuario", operacao: "Inclusão",
-                valorPosterior: "dataHora=20/10/2026 10:09:51.890;id=7500009189920;regra=liberacaoUsuarioRecebimentoFisicoSuspensoCompra;unidadeNegocio=7500000000001;usuario=3800147830607;versao=0;",
-                valorAnterior: "", revisao: "61729104", transacao: "563012944", versao: "0"
-            },
-            // XML Uploads (Arquivo)
-            {
-                dataHora: "15/10/2026 09:12:40", unNeg: "ESC", usuario: "CELSO BRENO SILVA DA COSTA",
-                entidade: "Arquivo", operacao: "Inclusão",
-                valorPosterior: "id=3800991827361;nome=43261092762277000331550020000267181261903098.xml;tamanho=18492;tipoConteudo=text/xml;dataHoraUpload=15/10/2026 09:12:40;usuario=3800147830607;",
-                valorAnterior: "", revisao: "61472011", transacao: "560981273", versao: "0"
-            },
-            {
-                dataHora: "19/10/2026 11:04:19", unNeg: "ESC", usuario: "CELSO BRENO SILVA DA COSTA",
-                entidade: "Arquivo", operacao: "Inclusão",
-                valorPosterior: "id=3800991899102;nome=35260905075152000177550010012953791037428888.xml;tamanho=24110;tipoConteudo=text/xml;dataHoraUpload=19/10/2026 11:04:19;usuario=3800147830607;",
-                valorAnterior: "", revisao: "61631099", transacao: "562301920", versao: "0"
-            },
-            // Manual Price Changes (AlteracaoPreco)
-            {
-                dataHora: "14/10/2026 09:18:22", unNeg: "0076", usuario: "CELSO BRENO SILVA DA COSTA",
-                entidade: "AlteracaoPreco", operacao: "Inclusão",
-                valorPosterior: "dataHora=14/10/2026 09:18:22;embalagem=3800049182711;id=7600081920112;origem=M;precoReferencial=2.4900;precoVendaAnterior=2.4900;precoVendaPosterior=2.2500;produto=3800049182700;unidadeNegocio=7600000000001;usuario=3800147830607;",
-                valorAnterior: "precoVendaAnterior=2.4900;origem=A;precoReferencial=2.4900;produto=3800049182700;",
-                revisao: "61409821", transacao: "560398120", versao: "0"
-            },
-            {
-                dataHora: "19/10/2026 15:12:44", unNeg: "0076", usuario: "CELSO BRENO SILVA DA COSTA",
-                entidade: "AlteracaoPreco", operacao: "Inclusão",
-                valorPosterior: "dataHora=19/10/2026 15:12:44;embalagem=3800019283741;id=7600082910445;origem=M;precoReferencial=18.9000;precoVendaAnterior=18.9000;precoVendaPosterior=14.9900;produto=3800019283700;unidadeNegocio=7600000000001;usuario=3800147830607;",
-                valorAnterior: "precoVendaAnterior=18.9000;origem=A;precoReferencial=18.9000;produto=3800019283700;",
-                revisao: "61670192", transacao: "562601928", versao: "0"
-            },
-            {
-                dataHora: "20/10/2026 15:34:10", unNeg: "0074", usuario: "CELSO BRENO SILVA DA COSTA",
-                entidade: "AlteracaoPreco", operacao: "Inclusão",
-                valorPosterior: "dataHora=20/10/2026 15:34:10;embalagem=3800055192011;id=7400089120331;origem=M;precoReferencial=42.5000;precoVendaAnterior=42.5000;precoVendaPosterior=37.9000;produto=3800055192000;unidadeNegocio=7400000000001;usuario=3800147830607;",
-                valorAnterior: "precoVendaAnterior=42.5000;origem=A;precoReferencial=42.5000;produto=3800055192000;",
-                revisao: "61768210", transacao: "563409182", versao: "0"
-            },
-            // Cascade Transaction Example (#560351332): ItemNotaFiscal + CustoProduto + HistoricoCusto + Estoque
-            {
-                dataHora: "14/10/2026 08:19:45", unNeg: "0076", usuario: "CELSO BRENO SILVA DA COSTA",
-                entidade: "ItemNotaFiscal", operacao: "Edição",
-                valorPosterior: "cfop=1102;embalagem=3800049182712;id=7600091827361;notaFiscal=7600019283711;produto=3800049182700;quantidade=1.0000;valorTotal=319.90;valorUnitario=319.9000;versao=2;",
-                valorAnterior: "cfop=1102;embalagem=3800049182711;id=7600091827361;notaFiscal=7600019283711;produto=3800049182700;quantidade=12.0000;valorTotal=319.90;valorUnitario=26.6583;versao=1;",
-                revisao: "61402190", transacao: "560351332", versao: "2"
-            },
-            {
-                dataHora: "14/10/2026 08:19:45", unNeg: "0076", usuario: "CELSO BRENO SILVA DA COSTA",
-                entidade: "CustoProduto", operacao: "Edição",
-                valorPosterior: "custoMedio=319.9000;custoReposicao=319.9000;id=7600049182701;produto=3800049182700;unidadeNegocio=7600000000001;versao=14;",
-                valorAnterior: "custoMedio=26.6583;custoReposicao=26.6583;id=7600049182701;produto=3800049182700;unidadeNegocio=7600000000001;versao=13;",
-                revisao: "61402190", transacao: "560351332", versao: "14"
-            },
-            {
-                dataHora: "14/10/2026 08:19:45", unNeg: "0076", usuario: "CELSO BRENO SILVA DA COSTA",
-                entidade: "AtualizacaoCustoNotaFiscalUnidadeNegocio", operacao: "Exclusão",
-                valorPosterior: "",
-                valorAnterior: "custoAnterior=26.6583;id=7600088172610;notaFiscal=7600019283711;produto=3800049182700;unidadeNegocio=7600000000001;versao=1;",
-                revisao: "61402190", transacao: "560351332", versao: "1"
-            },
-            {
-                dataHora: "14/10/2026 10:15:02", unNeg: "0076", usuario: "CELSO BRENO SILVA DA COSTA",
-                entidade: "Estoque", operacao: "Edição",
-                valorPosterior: "estoque=36.0000;estoqueAnterior=3.0000;id=7600049182731;produto=3800049182700;tipoEstoque=1;unidadeNegocio=7600000000001;versao=19;",
-                valorAnterior: "estoque=3.0000;estoqueAnterior=3.0000;id=7600049182731;produto=3800049182700;tipoEstoque=1;unidadeNegocio=7600000000001;versao=18;",
-                revisao: "61412900", transacao: "560412901", versao: "19"
-            },
-            // Sessions & Workstation Records
-            {
-                dataHora: "14/10/2026 08:01:50", unNeg: "ESC", usuario: "CELSO BRENO SILVA DA COSTA",
-                entidade: "SessaoUsuario", operacao: "Inclusão",
-                valorPosterior: "IDSessao=492877715;dataHoraInicial=14/10/2026 08:01:50;estacao=8300002002142;id=8300009182100;unidadeNegocio=3800000000001;usuario=3800147830607;",
-                valorAnterior: "", revisao: "61400001", transacao: "560340001", versao: "0"
-            },
-            {
-                dataHora: "19/10/2026 08:00:57", unNeg: "0076", usuario: "CELSO BRENO SILVA DA COSTA",
-                entidade: "SessaoUsuario", operacao: "Inclusão",
-                valorPosterior: "IDSessao=1505801814;dataHoraInicial=19/10/2026 08:00:57;estacao=7600001004112;id=7600009512090;unidadeNegocio=7600000000001;usuario=3800147830607;",
-                valorAnterior: "", revisao: "61600112", transacao: "562100491", versao: "0"
-            },
-            {
-                dataHora: "20/10/2026 07:57:38", unNeg: "0074", usuario: "CELSO BRENO SILVA DA COSTA",
-                entidade: "SessaoUsuario", operacao: "Inclusão",
-                valorPosterior: "IDSessao=1698204119;dataHoraInicial=20/10/2026 07:57:38;estacao=7400001002091;id=7400009712300;unidadeNegocio=7400000000001;usuario=3800147830607;",
-                valorAnterior: "", revisao: "61710004", transacao: "562900112", versao: "0"
-            },
-            {
-                dataHora: "14/10/2026 08:01:51", unNeg: "ESC", usuario: "CELSO BRENO SILVA DA COSTA",
-                entidade: "Estacao", operacao: "Edição",
-                valorPosterior: "id=8300002002142;identificacao=GHFESC-WD-0096:Windows 10;identificacaoInstalacaoSO=0084-13C3#0000_0000_0000_0000_ACE4_2E00_4155_4698.;ultimoAcesso=14/10/2026 08:01:51;versao=412;",
-                valorAnterior: "id=8300002002142;identificacao=GHFESC-WD-0096:Windows 10;identificacaoInstalacaoSO=0084-13C3#0000_0000_0000_0000_ACE4_2E00_4155_4698.;ultimoAcesso=13/10/2026 17:58:10;versao=411;",
-                revisao: "61400002", transacao: "560340002", versao: "412"
-            }
-        ];
-
-        // Application State
-        let telemetry = JSON.parse(JSON.stringify(INITIAL_TELEMETRY));
-        let records = [...INITIAL_RECORDS];
-        let filteredRecords = [...records];
-        let activeTxFilter = "";
-        let currentPage = 1;
-        const PAGE_SIZE = 18;
-        let selectedRecord = null;
-
-        // Chart Instances
-        let chartDailyCombo = null;
-        let chartHourlyCurve = null;
-        let chartUnitsBar = null;
-        let chartEntitiesBar = null;
-
-        // Curated Enterprise Typography Profiles
-        const TYPOGRAPHY_PROFILES = {
-            ibm: {
-                label: "IBM Plex Sans + DM Sans + IBM Plex Mono",
-                sans: "'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif",
-                display: "'DM Sans', 'IBM Plex Sans', sans-serif",
-                mono: "'IBM Plex Mono', monospace",
-                chartSans: "'IBM Plex Sans', sans-serif",
-                chartMono: "'IBM Plex Mono', monospace"
-            },
-            inter: {
-                label: "Inter + DM Sans + Fira Code",
-                sans: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-                display: "'DM Sans', 'Inter', sans-serif",
-                mono: "'Fira Code', monospace",
-                chartSans: "'Inter', sans-serif",
-                chartMono: "'Fira Code', monospace"
-            },
-            dm: {
-                label: "DM Sans + Space Mono",
-                sans: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
-                display: "'DM Sans', sans-serif",
-                mono: "'Space Mono', monospace",
-                chartSans: "'DM Sans', sans-serif",
-                chartMono: "'Space Mono', monospace"
-            },
-            public: {
-                label: "Public Sans + DM Sans + Roboto Mono",
-                sans: "'Public Sans', -apple-system, BlinkMacSystemFont, sans-serif",
-                display: "'DM Sans', 'Public Sans', sans-serif",
-                mono: "'Roboto Mono', monospace",
-                chartSans: "'Public Sans', sans-serif",
-                chartMono: "'Roboto Mono', monospace"
-            }
-        };
-        let activeFontProfile = 'ibm';
-
-        function switchTypographyProfile(profileKey) {
-            const profile = TYPOGRAPHY_PROFILES[profileKey] || TYPOGRAPHY_PROFILES.ibm;
-            activeFontProfile = profileKey;
-
-            const root = document.documentElement;
-            root.style.setProperty('--font-sans', profile.sans);
-            root.style.setProperty('--font-display', profile.display);
-            root.style.setProperty('--font-mono', profile.mono);
-
-            renderOverviewCharts();
-            notifyToast(`Tipografia ativa: ${profile.label}`, 'info');
-        }
-
-        // =====================================================================
-        // KEY=VALUE PARSER & FORENSIC DIFF ENGINE
-        // =====================================================================
-        function parseKeyValueString(raw) {
-            const map = {};
-            if (!raw) return map;
-            raw.split(';').forEach(token => {
-                const trimmed = token.trim();
-                if (!trimmed) return;
-                const idx = trimmed.indexOf('=');
-                if (idx > -1) {
-                    const k = trimmed.substring(0, idx).trim();
-                    const v = trimmed.substring(idx + 1).trim();
-                    map[k] = v;
-                } else {
-                    map[trimmed] = 'true';
-                }
-            });
-            return map;
-        }
-
-        function buildRecordSummary(rec) {
-            const post = parseKeyValueString(rec.valorPosterior);
-            const ant = parseKeyValueString(rec.valorAnterior);
-
-            if (rec.entidade === 'AcessoRecursoSistema' && post.menu) {
-                return `Tela: ${post.menu}`;
-            }
-            if (rec.entidade === 'Fornecedor' && post.ignorarConferenciaAutomaticaNotaFiscal) {
-                return `ignorarConferenciaNFe: ${ant.ignorarConferenciaAutomaticaNotaFiscal || 'false'} → ${post.ignorarConferenciaAutomaticaNotaFiscal}`;
-            }
-            if (rec.entidade === 'EstornoItemRecebimentoFisico') {
-                return `Motivo: "${post.motivo || '—'}" (Qtd: ${post.quantidadeEstornada || '—'})`;
-            }
-            if (rec.entidade === 'LiberacaoUsuario') {
-                return `Regra: ${post.regra || 'Liberação de Alçada'}`;
-            }
-            if (rec.entidade === 'AlteracaoPreco') {
-                return `Preço Venda: R$ ${post.precoVendaAnterior || ant.precoVendaAnterior || '?'} → R$ ${post.precoVendaPosterior || '?'}`;
-            }
-            if (rec.entidade === 'Arquivo') {
-                return `XML: ${post.nome || 'arquivo.xml'}`;
-            }
-
-            // Generic changed attribute detection
-            const keys = Array.from(new Set([...Object.keys(ant), ...Object.keys(post)]));
-            const diffs = [];
-            for (const k of keys) {
-                if (k === 'versao' || k === 'ultimoAcesso') continue;
-                if (ant[k] !== undefined && post[k] !== undefined && ant[k] !== post[k]) {
-                    diffs.push(`${k}: ${ant[k]} → ${post[k]}`);
-                }
-            }
-            if (diffs.length > 0) return diffs.slice(0, 2).join(' | ');
-
-            const sampleKey = Object.keys(post)[0] || Object.keys(ant)[0];
-            return sampleKey ? `${sampleKey}=${post[sampleKey] || ant[sampleKey]}` : rec.operacao;
-        }
-
-        // =====================================================================
-        // MASTER RENDER FUNCTION
-        // =====================================================================
-        function renderAllViews() {
-            renderTopBannersAndKPIs();
-            renderOverviewCharts();
-            renderRiskMatrixView();
-            renderFootprintView();
-            populateExplorerDropdowns();
-            applyExplorerFilters();
-            if (filteredRecords.length > 0) {
-                selectExplorerRow(0);
-            }
-        }
-
-        function renderTopBannersAndKPIs() {
-            const fmt = n => Number(n).toLocaleString('pt-BR');
-            const cascade = (telemetry.totalRecords / Math.max(1, telemetry.totalTransactions)).toFixed(2).replace('.', ',');
-
-            document.getElementById('sidebar-user-name').textContent = telemetry.user;
-            document.getElementById('sidebar-user-id').textContent = `ID: ${telemetry.userId}`;
-            document.getElementById('nav-badge-total').textContent = (telemetry.totalRecords / 1000).toFixed(1).replace('.', ',') + 'k';
-            document.getElementById('topbar-period').textContent = `${telemetry.periodStart.substring(0, 16)} — ${telemetry.periodEnd.substring(0, 16)}`;
-
-            document.getElementById('banner-user-id').textContent = `ID ${telemetry.userId}`;
-            document.getElementById('banner-user-name').textContent = telemetry.user;
-            document.getElementById('banner-units-count').textContent = telemetry.totalUnits;
-            document.getElementById('banner-erp-ver').textContent = telemetry.erpVersion;
-            document.getElementById('banner-hostname').textContent = telemetry.hostname;
-            document.getElementById('banner-station').textContent = telemetry.mainStation;
-            document.getElementById('banner-os-hash').textContent = telemetry.osHash;
-            document.getElementById('banner-cascade').textContent = cascade;
-            document.getElementById('banner-sessions').textContent = fmt(telemetry.totalSessions);
-            document.getElementById('banner-menus').textContent = fmt(telemetry.totalMenuAccess);
-
-            document.getElementById('kpi-total-records').textContent = fmt(telemetry.totalRecords);
-            document.getElementById('kpi-total-tx').textContent = `${fmt(telemetry.totalTransactions)} cliques`;
-            document.getElementById('kpi-cascade-pill').textContent = `${cascade}x cascata`;
-            document.getElementById('kpi-units-total').textContent = `${telemetry.totalUnits} Filiais`;
-
-            const del = telemetry.operations["Exclusão"] || 0;
-            const edit = telemetry.operations["Edição"] || 0;
-            const add = telemetry.operations["Inclusão"] || 0;
-            const tot = Math.max(1, del + edit + add);
-
-            document.getElementById('kpi-del-num').textContent = fmt(del);
-            document.getElementById('kpi-edit-num').textContent = fmt(edit);
-            document.getElementById('kpi-add-num').textContent = fmt(add);
-
-            document.getElementById('bar-op-del').style.width = `${((del / tot) * 100).toFixed(2)}%`;
-            document.getElementById('bar-op-edit').style.width = `${((edit / tot) * 100).toFixed(2)}%`;
-            document.getElementById('bar-op-add').style.width = `${((add / tot) * 100).toFixed(2)}%`;
-        }
-
-        // =====================================================================
-        // VIEW 1: CHARTS (REFINED ENTERPRISE STYLING)
-        // =====================================================================
-        function renderOverviewCharts() {
-            const currentProfile = TYPOGRAPHY_PROFILES[activeFontProfile] || TYPOGRAPHY_PROFILES.ibm;
-            const fontMono = { family: currentProfile.chartMono, size: 10 };
-            const fontSans = { family: currentProfile.chartSans, size: 11 };
-            const gridColor = '#F1F5F9';
-            const tickColor = '#64748B';
-
-            // 1. Daily Combo Chart (Bars: Records | Line: Transactions)
-            if (chartDailyCombo) chartDailyCombo.destroy();
-            chartDailyCombo = new Chart(document.getElementById('chartDailyCombo'), {
-                data: {
-                    labels: telemetry.daily.map(d => `${d.label} (${d.weekday.substring(0, 3)})`),
-                    datasets: [
-                        {
-                            type: 'bar',
-                            label: 'Registros no Banco',
-                            data: telemetry.daily.map(d => d.records),
-                            backgroundColor: '#2563EB',
-                            hoverBackgroundColor: '#1D4ED8',
-                            borderRadius: 4,
-                            yAxisID: 'y'
-                        },
-                        {
-                            type: 'line',
-                            label: 'Transações Humanas',
-                            data: telemetry.daily.map(d => d.tx),
-                            borderColor: '#BE123C',
-                            backgroundColor: '#BE123C',
-                            borderWidth: 2,
-                            pointRadius: 3,
-                            tension: 0.25,
-                            yAxisID: 'y1'
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: { mode: 'index', intersect: false },
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: { ticks: { color: tickColor, font: fontSans }, grid: { display: false } },
-                        y: {
-                            position: 'left',
-                            ticks: { color: tickColor, font: fontMono },
-                            grid: { color: gridColor }
-                        },
-                        y1: {
-                            position: 'right',
-                            ticks: { color: '#BE123C', font: fontMono },
-                            grid: { drawOnChartArea: false }
-                        }
-                    }
-                }
-            });
-
-            // 2. Hourly Operational Rhythm Curve
-            if (chartHourlyCurve) chartHourlyCurve.destroy();
-            chartHourlyCurve = new Chart(document.getElementById('chartHourlyCurve'), {
-                type: 'line',
-                data: {
-                    labels: telemetry.hourly.map(h => h.hour),
-                    datasets: [{
-                        label: 'Registros / Hora',
-                        data: telemetry.hourly.map(h => h.count),
-                        borderColor: '#0F172A',
-                        backgroundColor: 'rgba(37, 99, 235, 0.08)',
-                        borderWidth: 2,
-                        fill: true,
-                        pointBackgroundColor: telemetry.hourly.map(h => h.hour === '15h' ? '#BE123C' : '#2563EB'),
-                        pointRadius: telemetry.hourly.map(h => h.hour === '15h' ? 5 : 3),
-                        tension: 0.3
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: { ticks: { color: tickColor, font: fontMono }, grid: { display: false } },
-                        y: { ticks: { color: tickColor, font: fontMono }, grid: { color: gridColor } }
-                    }
-                }
-            });
-
-            // 3. Top Business Units Horizontal Bar
-            if (chartUnitsBar) chartUnitsBar.destroy();
-            const topUnits = telemetry.units.slice(0, 10);
-            chartUnitsBar = new Chart(document.getElementById('chartUnitsBar'), {
-                type: 'bar',
-                data: {
-                    labels: topUnits.map(u => u.unit === 'ESC' ? 'ESC (Matriz)' : `Filial ${u.unit}`),
-                    datasets: [{
-                        label: 'Registros',
-                        data: topUnits.map(u => u.count),
-                        backgroundColor: topUnits.map((_, i) => i === 0 ? '#1D4ED8' : '#475569'),
-                        borderRadius: 3
-                    }]
-                },
-                options: {
-                    indexAxis: 'y',
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: { ticks: { color: tickColor, font: fontMono }, grid: { color: gridColor } },
-                        y: { ticks: { color: '#0F172A', font: fontMono }, grid: { display: false } }
-                    }
-                }
-            });
-
-            // 4. Top Database Entities Horizontal Bar
-            if (chartEntitiesBar) chartEntitiesBar.destroy();
-            const topEnts = telemetry.entities.slice(0, 10);
-            chartEntitiesBar = new Chart(document.getElementById('chartEntitiesBar'), {
-                type: 'bar',
-                data: {
-                    labels: topEnts.map(e => e.entity.length > 28 ? e.entity.substring(0, 26) + '…' : e.entity),
-                    datasets: [{
-                        label: 'Registros Afetados',
-                        data: topEnts.map(e => e.count),
-                        backgroundColor: '#334155',
-                        borderRadius: 3
-                    }]
-                },
-                options: {
-                    indexAxis: 'y',
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: { ticks: { color: tickColor, font: fontMono }, grid: { color: gridColor } },
-                        y: { ticks: { color: '#0F172A', font: fontMono }, grid: { display: false } }
-                    }
-                }
-            });
-        }
-
-        // =====================================================================
-        // VIEW 2: RISK MATRIX & FORENSIC FINDINGS
-        // =====================================================================
-        function renderRiskMatrixView() {
-            const grid = document.getElementById('forensic-cards-grid');
-            grid.innerHTML = FORENSIC_FINDINGS.map(f => `
-                <div class="surface-card surface-card-interactive p-4 flex flex-col justify-between">
-                    <div>
-                        <div class="flex items-center justify-between gap-2 mb-2">
-                            <span class="pill-badge ${f.badgeClass}">${f.severity}</span>
-                            <span class="font-mono text-xs font-semibold text-slate-700 tabular-nums">${f.occurrences}</span>
-                        </div>
-                        <h4 class="text-sm font-bold text-slate-900">${f.title}</h4>
-                        <p class="text-xs text-slate-600 mt-1.5 leading-relaxed">${f.summary}</p>
-                    </div>
-                    <div class="mt-4 pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                        <div class="text-[11px] font-mono text-slate-500 truncate" title="${f.controlRef}">
-                            <i class="fa-solid fa-scale-balanced text-slate-400 mr-1"></i>${f.controlRef}
-                        </div>
-                        <button onclick="inspectAnomaly('${f.id}')" class="px-3 py-1.5 rounded text-xs font-semibold bg-slate-900 hover:bg-brand-600 text-white transition inline-flex items-center gap-1.5 shrink-0">
-                            <span>Inspecionar Evidências</span>
-                            <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
-                        </button>
-                    </div>
-                </div>
-            `).join('');
-
-            // Populate Manual Price Table
-            const priceRows = records.filter(r => r.entidade === 'AlteracaoPreco');
-            document.getElementById('table-risk-prices').innerHTML = priceRows.map(r => {
-                const kv = parseKeyValueString(r.valorPosterior);
-                const ant = parseFloat(kv.precoVendaAnterior || 0);
-                const post = parseFloat(kv.precoVendaPosterior || 0);
-                const pct = ant > 0 ? (((post - ant) / ant) * 100).toFixed(1) : '0.0';
-                return `
-                    <tr onclick="jumpToTransaction('${r.transacao}')" class="hover:bg-slate-50 cursor-pointer">
-                        <td class="py-2 px-3 text-slate-600">${r.dataHora}</td>
-                        <td class="py-2 px-2.5 font-semibold text-slate-800">${r.unNeg}</td>
-                        <td class="py-2 px-2.5 text-slate-700">${kv.produto || '—'}</td>
-                        <td class="py-2 px-2.5 text-right text-slate-500">R$ ${ant.toFixed(2)}</td>
-                        <td class="py-2 px-2.5 text-right font-semibold text-slate-900">R$ ${post.toFixed(2)}</td>
-                        <td class="py-2 px-3 text-right"><span class="pill-badge pill-crimson">${pct}%</span></td>
-                    </tr>
-                `;
-            }).join('');
-
-            // Populate Stock / Invoice Direct Edits Table
-            const stockRows = records.filter(r => ['ItemNotaFiscal', 'CustoProduto', 'Estoque'].includes(r.entidade));
-            document.getElementById('table-risk-stock').innerHTML = stockRows.map(r => {
-                const ant = parseKeyValueString(r.valorAnterior);
-                const post = parseKeyValueString(r.valorPosterior);
-                let attr = 'quantidade';
-                let pair = `${ant.quantidade || '—'} → ${post.quantidade || '—'}`;
-                if (r.entidade === 'CustoProduto') {
-                    attr = 'custoMedio';
-                    pair = `R$ ${ant.custoMedio || '—'} → R$ ${post.custoMedio || '—'}`;
-                } else if (r.entidade === 'Estoque') {
-                    attr = 'estoque';
-                    pair = `${ant.estoque || post.estoqueAnterior || '—'} → ${post.estoque || '—'}`;
-                }
-                return `
-                    <tr onclick="jumpToTransaction('${r.transacao}')" class="hover:bg-slate-50 cursor-pointer">
-                        <td class="py-2 px-3 text-slate-600">${r.dataHora}</td>
-                        <td class="py-2 px-2 font-semibold text-slate-800">${r.unNeg}</td>
-                        <td class="py-2 px-2.5 text-slate-800">${r.entidade}</td>
-                        <td class="py-2 px-2.5 text-slate-500">${attr}</td>
-                        <td class="py-2 px-2.5 text-right font-semibold text-amber-800">${pair}</td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        // =====================================================================
-        // VIEW 3: USER FOOTPRINT, WORKDAY RULER & SESSIONS
-        // =====================================================================
-        function timeToHoursFloat(tStr) {
-            const parts = (tStr || "08:00:00").split(':').map(Number);
-            return (parts[0] || 8) + ((parts[1] || 0) / 60);
-        }
-
-        function renderFootprintView() {
-            // 1. 9-Day Workday Visual Ruler (07:00 to 19:00 = 12h span)
-            const tbody = document.getElementById('footprint-daily-tbody');
-            tbody.innerHTML = telemetry.daily.map(d => {
-                const startH = timeToHoursFloat(d.start);
-                const endH = timeToHoursFloat(d.end);
-                const leftPct = Math.max(0, Math.min(100, ((startH - 7) / 12) * 100));
-                const widthPct = Math.max(4, Math.min(100 - leftPct, ((endH - startH) / 12) * 100));
-
-                return `
-                    <tr class="hover:bg-slate-50">
-                        <td class="py-2.5 px-3 font-semibold text-slate-900">${d.date}</td>
-                        <td class="py-2.5 px-2.5 font-sans text-slate-600">${d.weekday}</td>
-                        <td class="py-2.5 px-2.5 text-emerald-700 font-medium">${d.start}</td>
-                        <td class="py-2.5 px-2.5 text-slate-700">${d.end}</td>
-                        <td class="py-2.5 px-2.5 text-slate-500">${d.span}</td>
-                        <td class="py-2.5 px-3">
-                            <div class="w-full h-2.5 rounded-full bg-slate-100 relative overflow-hidden border border-slate-200/70">
-                                <div class="h-full bg-brand-600 rounded-full absolute top-0" style="left: ${leftPct.toFixed(1)}%; width: ${widthPct.toFixed(1)}%"></div>
-                            </div>
-                        </td>
-                        <td class="py-2.5 px-2.5 text-right text-slate-600">${d.sessions}</td>
-                        <td class="py-2.5 px-2.5 text-right text-slate-700 font-medium">${d.tx.toLocaleString('pt-BR')}</td>
-                        <td class="py-2.5 px-3 text-right font-bold text-slate-900">${d.records.toLocaleString('pt-BR')}</td>
-                    </tr>
-                `;
-            }).join('');
-
-            // 2. Menu Funnel List
-            const maxMenu = Math.max(...telemetry.menus.map(m => m.count), 1);
-            document.getElementById('footprint-menus-list').innerHTML = telemetry.menus.map(m => {
-                const pct = Math.round((m.count / maxMenu) * 100);
-                return `
-                    <div class="p-2.5 rounded-md border ${m.risk ? 'bg-rose-50/60 border-rose-200' : 'bg-slate-50/70 border-slate-200/80'}">
-                        <div class="flex items-center justify-between text-xs font-mono">
-                            <span class="${m.risk ? 'font-bold text-rose-800' : 'text-slate-800'} truncate">
-                                ${m.risk ? '<i class="fa-solid fa-triangle-exclamation text-rose-600 mr-1.5"></i>' : ''}${m.route}
-                            </span>
-                            <span class="font-semibold ${m.risk ? 'text-rose-700' : 'text-slate-600'} ml-2 shrink-0 tabular-nums">${m.count}x</span>
-                        </div>
-                        <div class="w-full h-1 bg-slate-200/80 rounded-full mt-1.5 overflow-hidden">
-                            <div class="h-full ${m.risk ? 'bg-rose-600' : 'bg-brand-600'}" style="width: ${pct}%"></div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-
-            // 3. Authenticated Sessions Table
-            const sessionRows = records.filter(r => r.entidade === 'SessaoUsuario' || r.entidade === 'Estacao');
-            document.getElementById('footprint-sessions-tbody').innerHTML = sessionRows.map(r => {
-                const kv = parseKeyValueString(r.valorPosterior);
-                return `
-                    <tr onclick="jumpToTransaction('${r.transacao}')" class="hover:bg-slate-50 cursor-pointer">
-                        <td class="py-2 px-2.5 text-slate-700">${r.dataHora}</td>
-                        <td class="py-2 px-2 font-semibold text-slate-800">${r.unNeg}</td>
-                        <td class="py-2 px-2.5 text-brand-700 font-medium">${kv.IDSessao || 'Host Edit'}</td>
-                        <td class="py-2 px-2.5 text-slate-600">${kv.estacao || kv.id || '—'}</td>
-                        <td class="py-2 px-2.5 text-slate-500">${r.transacao}</td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        // =====================================================================
-        // VIEW 4: FORENSIC EXPLORER & SIDE-BY-SIDE DIFF INSPECTOR
-        // =====================================================================
-        function populateExplorerDropdowns() {
-            const entSel = document.getElementById('exp-entity');
-            const unitSel = document.getElementById('exp-unit');
-
-            const entities = Array.from(new Set(records.map(r => r.entidade))).sort();
-            const units = Array.from(new Set(records.map(r => r.unNeg))).sort();
-
-            entSel.innerHTML = `<option value="">Todas as Entidades (${entities.length})</option>` +
-                entities.map(e => `<option value="${e}">${e}</option>`).join('');
-
-            unitSel.innerHTML = `<option value="">Todas as Filiais (${units.length})</option>` +
-                units.map(u => `<option value="${u}">${u}</option>`).join('');
-        }
-
-        function applyExplorerFilters() {
-            const q = (document.getElementById('exp-search').value || '').toLowerCase();
-            const ent = document.getElementById('exp-entity').value;
-            const unit = document.getElementById('exp-unit').value;
-            const op = document.getElementById('exp-op').value;
-
-            filteredRecords = records.filter(r => {
-                if (ent && r.entidade !== ent) return false;
-                if (unit && r.unNeg !== unit) return false;
-                if (op && r.operacao !== op) return false;
-                if (activeTxFilter && String(r.transacao) !== String(activeTxFilter)) return false;
-                if (q) {
-                    const hay = `${r.dataHora} ${r.unNeg} ${r.entidade} ${r.operacao} ${r.valorPosterior} ${r.valorAnterior} ${r.transacao}`.toLowerCase();
-                    if (!hay.includes(q)) return false;
-                }
-                return true;
-            });
-
-            currentPage = 1;
-            renderExplorerTable();
-        }
-
-        function renderExplorerTable() {
-            const total = filteredRecords.length;
-            const maxPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-            if (currentPage > maxPages) currentPage = maxPages;
-
-            const start = (currentPage - 1) * PAGE_SIZE;
-            const pageItems = filteredRecords.slice(start, start + PAGE_SIZE);
-
-            document.getElementById('exp-count').textContent = total.toLocaleString('pt-BR');
-            document.getElementById('exp-page-label').textContent = `${currentPage} / ${maxPages}`;
-            document.getElementById('exp-prev').disabled = currentPage <= 1;
-            document.getElementById('exp-next').disabled = currentPage >= maxPages;
-
-            const tbody = document.getElementById('exp-tbody');
-            if (pageItems.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-slate-400 font-sans">Nenhum registro encontrado para os critérios selecionados.</td></tr>`;
-                return;
-            }
-
-            tbody.innerHTML = pageItems.map((r, idx) => {
-                const absIndex = start + idx;
-                const isSelected = selectedRecord === r;
-                const opBadge = r.operacao === 'Exclusão' ? 'pill-crimson' : r.operacao === 'Edição' ? 'pill-amber' : 'pill-emerald';
-
-                return `
-                    <tr onclick="selectExplorerRow(${absIndex})" class="cursor-pointer transition ${isSelected ? 'bg-brand-50/80 font-semibold' : 'hover:bg-slate-50'}">
-                        <td class="py-2 px-3 whitespace-nowrap text-slate-600">${r.dataHora}</td>
-                        <td class="py-2 px-2 font-semibold text-slate-800">${r.unNeg}</td>
-                        <td class="py-2 px-2.5 text-slate-900 truncate max-w-[140px]" title="${r.entidade}">${r.entidade}</td>
-                        <td class="py-2 px-2"><span class="pill-badge ${opBadge}">${r.operacao}</span></td>
-                        <td class="py-2 px-2.5 text-slate-600 truncate max-w-[210px]" title="${buildRecordSummary(r)}">${buildRecordSummary(r)}</td>
-                        <td class="py-2 px-2.5 text-right text-slate-500">${r.transacao}</td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        function selectExplorerRow(absIndex) {
-            const rec = filteredRecords[absIndex];
-            if (!rec) return;
-            selectedRecord = rec;
-            renderExplorerTable();
-
-            // Populate Right-Pane Diff Inspector
-            const opBadge = rec.operacao === 'Exclusão' ? 'pill-crimson' : rec.operacao === 'Edição' ? 'pill-amber' : 'pill-emerald';
-            const badgeEl = document.getElementById('diff-op-badge');
-            badgeEl.className = `pill-badge ${opBadge}`;
-            badgeEl.textContent = rec.operacao;
-
-            document.getElementById('diff-title').textContent = rec.entidade;
-            document.getElementById('diff-tx-btn-label').textContent = rec.transacao;
-            document.getElementById('diff-meta-dt').textContent = rec.dataHora;
-            document.getElementById('diff-meta-un').textContent = rec.unNeg;
-            document.getElementById('diff-meta-rev').textContent = rec.revisao || '—';
-            document.getElementById('diff-meta-ver').textContent = rec.versao || '0';
-
-            const ant = parseKeyValueString(rec.valorAnterior);
-            const post = parseKeyValueString(rec.valorPosterior);
-            const allKeys = Array.from(new Set([...Object.keys(ant), ...Object.keys(post)])).sort();
-
-            let modCount = 0, addCount = 0, delCount = 0;
-
-            const rowsHtml = allKeys.map(k => {
-                const vA = ant[k];
-                const vP = post[k];
-
-                if (vA !== undefined && vP !== undefined && vA !== vP) {
-                    modCount++;
-                    return `
-                        <tr class="bg-amber-50/70">
-                            <td class="py-2 px-3 font-semibold text-amber-900">
-                                ${k}
-                                <span class="ml-1 px-1 py-0.2 text-[9px] rounded bg-amber-100 text-amber-800 border border-amber-300">ALTERADO</span>
-                            </td>
-                            <td class="py-2 px-2.5 text-rose-700 line-through break-all">${vA}</td>
-                            <td class="py-2 px-2.5 text-emerald-800 font-bold break-all">${vP}</td>
-                        </tr>
-                    `;
-                } else if (vA === undefined && vP !== undefined) {
-                    addCount++;
-                    return `
-                        <tr class="bg-emerald-50/40">
-                            <td class="py-2 px-3 font-medium text-slate-800">${k}</td>
-                            <td class="py-2 px-2.5 text-slate-300">—</td>
-                            <td class="py-2 px-2.5 text-emerald-800 font-medium break-all">${vP}</td>
-                        </tr>
-                    `;
-                } else if (vA !== undefined && vP === undefined) {
-                    delCount++;
-                    return `
-                        <tr class="bg-rose-50/50">
-                            <td class="py-2 px-3 font-medium text-rose-900">${k}</td>
-                            <td class="py-2 px-2.5 text-rose-700 line-through break-all">${vA}</td>
-                            <td class="py-2 px-2.5 text-slate-300">—</td>
-                        </tr>
-                    `;
-                } else {
-                    return `
-                        <tr>
-                            <td class="py-1.5 px-3 text-slate-500">${k}</td>
-                            <td class="py-1.5 px-2.5 text-slate-400 break-all">${vA}</td>
-                            <td class="py-1.5 px-2.5 text-slate-600 break-all">${vP}</td>
-                        </tr>
-                    `;
-                }
-            }).join('');
-
-            document.getElementById('diff-count-mod').textContent = modCount;
-            document.getElementById('diff-count-add').textContent = addCount;
-            document.getElementById('diff-count-del').textContent = delCount;
-
-            document.getElementById('diff-tbody').innerHTML = rowsHtml || `<tr><td colspan="3" class="py-6 text-center text-slate-400">Sem atributos chave=valor estruturados.</td></tr>`;
-        }
-
-        function filterByCurrentTx() {
-            if (!selectedRecord) return;
-            jumpToTransaction(selectedRecord.transacao);
-        }
-
-        function jumpToTransaction(txId) {
-            switchView('view-explorer');
-            activeTxFilter = txId;
-            document.getElementById('exp-entity').value = '';
-            document.getElementById('exp-unit').value = '';
-            document.getElementById('exp-op').value = '';
-            document.getElementById('exp-search').value = '';
-
-            const pill = document.getElementById('active-tx-pill');
-            pill.classList.remove('hidden');
-            pill.classList.add('inline-flex');
-            document.getElementById('active-tx-val').textContent = `#${txId}`;
-
-            applyExplorerFilters();
-            if (filteredRecords.length > 0) selectExplorerRow(0);
-            notifyToast(`Filtrando cascata completa da Transação #${txId}`, 'info');
-        }
-
-        function clearTxFilter() {
-            activeTxFilter = "";
-            const pill = document.getElementById('active-tx-pill');
-            pill.classList.add('hidden');
-            pill.classList.remove('inline-flex');
-            applyExplorerFilters();
-        }
-
-        function setQuickFilter(entity, op, searchQuery) {
-            switchView('view-explorer');
-            activeTxFilter = "";
-            document.getElementById('active-tx-pill').classList.add('hidden');
-            document.getElementById('exp-entity').value = entity || '';
-            document.getElementById('exp-op').value = op || '';
-            document.getElementById('exp-unit').value = '';
-            document.getElementById('exp-search').value = searchQuery || '';
-            applyExplorerFilters();
-            if (filteredRecords.length > 0) selectExplorerRow(0);
-        }
-
-        function resetExplorerFilters() {
-            setQuickFilter('', '', '');
-        }
-
-        function changeExplorerPage(delta) {
-            currentPage += delta;
-            renderExplorerTable();
-        }
-
-        function inspectAnomaly(anomalyId) {
-            const f = FORENSIC_FINDINGS.find(x => x.id === anomalyId);
-            if (!f) return;
-            setQuickFilter(f.entity, '', f.searchKey);
-            notifyToast(`Inspecionando evidências: ${f.title}`, 'info');
-        }
-
-        // =====================================================================
-        // LIVE SHEETJS (.XLSX / .CSV) PARSER ENGINE
-        // =====================================================================
-        function setupFileIngestion() {
-            const fileInput = document.getElementById('xlsx-file-input');
-            const dropzone = document.getElementById('sidebar-dropzone');
-
-            fileInput.addEventListener('change', e => {
-                if (e.target.files && e.target.files[0]) {
-                    ingestSpreadsheetFile(e.target.files[0]);
-                }
-            });
-
-            ['dragenter', 'dragover'].forEach(evt => {
-                dropzone.addEventListener(evt, e => {
-                    e.preventDefault();
-                    dropzone.classList.add('border-sky-400', 'bg-obsidian-800');
-                });
-            });
-
-            ['dragleave', 'drop'].forEach(evt => {
-                dropzone.addEventListener(evt, e => {
-                    e.preventDefault();
-                    dropzone.classList.remove('border-sky-400', 'bg-obsidian-800');
-                });
-            });
-
-            dropzone.addEventListener('drop', e => {
-                if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-                    ingestSpreadsheetFile(e.dataTransfer.files[0]);
-                }
-            });
-        }
-
-        function ingestSpreadsheetFile(file) {
-            notifyToast(`Lendo planilha "${file.name}" via SheetJS...`, 'info');
-            const reader = new FileReader();
-            reader.onload = function(evt) {
-                try {
-                    const bytes = new Uint8Array(evt.target.result);
-                    const workbook = XLSX.read(bytes, { type: 'array' });
-                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const rawRows = XLSX.utils.sheet_to_json(firstSheet, { defval: "" });
-
-                    if (!rawRows || rawRows.length === 0) {
-                        notifyToast("A planilha selecionada está vazia ou sem colunas válidas.", "error");
-                        return;
-                    }
-
-                    rebuildFromUploadedSheet(rawRows, file.name);
-                    notifyToast(`Sucesso! ${rawRows.length.toLocaleString('pt-BR')} linhas processadas em tempo real.`, "success");
-                } catch (err) {
-                    console.error(err);
-                    notifyToast("Erro ao processar arquivo. Verifique se é um .xlsx ou .csv válido.", "error");
-                }
-            };
-            reader.readAsArrayBuffer(file);
-        }
-
-        function rebuildFromUploadedSheet(rawRows, filename) {
-            const newRecords = [];
-            const txSet = new Set();
-            const unitsMap = {};
-            const entitiesMap = {};
-            const opsMap = { "Exclusão": 0, "Edição": 0, "Inclusão": 0 };
-            const dailyMap = {};
-            const hourlyMap = {};
-            const menuMap = {};
-            let sessionCount = 0;
-            let detectedUser = "";
-
-            rawRows.forEach(row => {
-                const dataHora = String(row['Data Hora'] || row['DataHora'] || '').trim();
-                const unNeg = String(row['Un. Neg.'] || row['Un. Neg'] || 'ESC').trim();
-                const usuario = String(row['Usuário'] || row['Usuario'] || '').trim();
-                const entidade = String(row['Entidade'] || '').trim();
-                const operacao = String(row['Operação'] || row['Operacao'] || '').trim();
-                const valorPosterior = String(row['Valor Posterior'] || '');
-                const valorAnterior = String(row['Valor Anterior'] || '');
-                const revisao = String(row['Revisão'] || row['Revisao'] || '');
-                const transacao = String(row['Transação'] || row['Transacao'] || '');
-                const versao = String(row['Versão'] || row['Versao'] || '');
-
-                if (!dataHora && !entidade) return;
-                if (!detectedUser && usuario) detectedUser = usuario;
-                if (transacao) txSet.add(transacao);
-
-                unitsMap[unNeg] = (unitsMap[unNeg] || 0) + 1;
-                entitiesMap[entidade] = (entitiesMap[entidade] || 0) + 1;
-                opsMap[operacao] = (opsMap[operacao] || 0) + 1;
-
-                if (entidade === 'SessaoUsuario') sessionCount++;
-                if (entidade === 'AcessoRecursoSistema') {
-                    const kv = parseKeyValueString(valorPosterior);
-                    if (kv.menu) menuMap[kv.menu] = (menuMap[kv.menu] || 0) + 1;
-                }
-
-                const [datePart, timePart] = dataHora.split(' ');
-                if (timePart) {
-                    const hKey = timePart.substring(0, 2) + 'h';
-                    hourlyMap[hKey] = (hourlyMap[hKey] || 0) + 1;
-                }
-
-                if (datePart) {
-                    if (!dailyMap[datePart]) {
-                        dailyMap[datePart] = { date: datePart, label: datePart.substring(0, 5), weekday: "Dia", start: timePart || '08:00:00', end: timePart || '17:00:00', span: "—", records: 0, txSet: new Set(), sessions: 0 };
-                    }
-                    dailyMap[datePart].records++;
-                    if (transacao) dailyMap[datePart].txSet.add(transacao);
-                    if (entidade === 'SessaoUsuario') dailyMap[datePart].sessions++;
-                    if (timePart && timePart < dailyMap[datePart].start) dailyMap[datePart].start = timePart;
-                    if (timePart && timePart > dailyMap[datePart].end) dailyMap[datePart].end = timePart;
-                }
-
-                newRecords.push({ dataHora, unNeg, usuario, entidade, operacao, valorPosterior, valorAnterior, revisao, transacao, versao });
-            });
-
-            telemetry.user = detectedUser || telemetry.user;
-            telemetry.totalRecords = newRecords.length;
-            telemetry.totalTransactions = txSet.size || 1;
-            telemetry.totalUnits = Object.keys(unitsMap).length;
-            telemetry.totalEntities = Object.keys(entitiesMap).length;
-            telemetry.totalSessions = sessionCount || telemetry.totalSessions;
-            telemetry.operations = opsMap;
-
-            telemetry.units = Object.entries(unitsMap).map(([unit, count]) => ({ unit, count })).sort((a, b) => b.count - a.count);
-            telemetry.entities = Object.entries(entitiesMap).map(([entity, count]) => ({ entity, count })).sort((a, b) => b.count - a.count);
-
-            if (Object.keys(menuMap).length > 0) {
-                telemetry.menus = Object.entries(menuMap).map(([route, count]) => ({
-                    route, count, risk: route.toLowerCase().includes('log')
-                })).sort((a, b) => b.count - a.count);
-                telemetry.totalMenuAccess = telemetry.menus.reduce((acc, m) => acc + m.count, 0);
-            }
-
-            records = newRecords;
-            document.getElementById('sidebar-source-tag').textContent = filename;
-            document.getElementById('btn-restore-default').classList.remove('hidden');
-            renderAllViews();
-        }
-
-        function restoreDefaultDataset() {
-            telemetry = JSON.parse(JSON.stringify(INITIAL_TELEMETRY));
-            records = [...INITIAL_RECORDS];
-            document.getElementById('sidebar-source-tag').textContent = "LOG CELSO.xlsx";
-            document.getElementById('btn-restore-default').classList.add('hidden');
-            renderAllViews();
-            notifyToast("Dataset oficial de LOG CELSO.xlsx restaurado.", "info");
-        }
-
-        // =====================================================================
-        // 100% FUNCTIONAL PDF REPORT GENERATOR (jsPDF + AutoTable)
-        // =====================================================================
-        function openPdfModal() {
-            const modal = document.getElementById('pdf-modal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        }
-
-        function closePdfModal() {
-            const modal = document.getElementById('pdf-modal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
-
-        function generateForensicPDF() {
-            try {
-                if (!window.jspdf || !window.jspdf.jsPDF) {
-                    notifyToast("Biblioteca jsPDF ainda carregando. Tente novamente em instantes.", "error");
-                    return;
-                }
-
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-
-                const incExec = document.getElementById('pdf-sec-exec').checked;
-                const incMachine = document.getElementById('pdf-sec-machine').checked;
-                const incRisks = document.getElementById('pdf-sec-risks').checked;
-                const incWorkday = document.getElementById('pdf-sec-workday').checked;
-                const incSamples = document.getElementById('pdf-sec-samples').checked;
-                const classification = document.getElementById('pdf-classification').value;
-                const auditorNotes = document.getElementById('pdf-auditor-notes').value;
-
-                // Institutional Colors
-                const navy = [11, 15, 23];
-                const brandBlue = [37, 99, 235];
-                const slateDark = [15, 23, 42];
-                const slateMuted = [100, 116, 139];
-
-                // Top Header Banner
-                doc.setFillColor(...navy);
-                doc.rect(14, 12, 182, 20, 'F');
-                doc.setTextColor(255, 255, 255);
-                doc.setFont('helvetica', 'bold');
-                doc.setFontSize(11);
-                doc.text("PARECER TÉCNICO PERICIAL — AUDITORIA FORENSE & GRC ERP", 19, 20);
-
-                doc.setFont('helvetica', 'normal');
-                doc.setFontSize(8);
-                doc.setTextColor(148, 163, 184);
-                doc.text(`${classification} • DATA EMISSÃO: 23/10/2026`, 19, 26.5);
-
-                let curY = 38;
-
-                // Section 1 & 2: Target Identity & Machine Fingerprint
-                if (incMachine || incExec) {
-                    doc.setFillColor(248, 250, 252);
-                    doc.setDrawColor(226, 232, 240);
-                    doc.rect(14, curY, 182, 28, 'FD');
-
-                    doc.setTextColor(...slateDark);
-                    doc.setFont('helvetica', 'bold');
-                    doc.setFontSize(8.5);
-                    doc.text("1. IDENTIFICAÇÃO DO USUÁRIO AUDITADO E ASSINATURA FORENSE DO TERMINAL", 18, curY + 6);
-
-                    doc.setFont('helvetica', 'normal');
-                    doc.setFontSize(8);
-                    doc.text(`Colaborador Investigado: ${telemetry.user} (ID Interno: ${telemetry.userId})`, 18, curY + 12);
-                    doc.text(`Janela Auditada: ${telemetry.periodStart} a ${telemetry.periodEnd} • Versão ERP: ${telemetry.erpVersion}`, 18, curY + 17);
-                    doc.text(`Hostname / Sistema Operacional: ${telemetry.hostname} • Estação Principal: ${telemetry.mainStation}`, 18, curY + 22);
-                    doc.text(`Hash Instalação SO: ${telemetry.osHash}`, 115, curY + 12);
-
-                    curY += 33;
-                }
-
-                // Section 1B: Executive KPIs Table
-                if (incExec) {
-                    const cascade = (telemetry.totalRecords / Math.max(1, telemetry.totalTransactions)).toFixed(2);
-                    doc.autoTable({
-                        startY: curY,
-                        margin: { left: 14, right: 14 },
-                        head: [["Registros DB", "Transações (Cliques)", "Fator Cascata", "Filiais", "Exclusões", "Edições", "Inclusões"]],
-                        body: [[
-                            telemetry.totalRecords.toLocaleString('pt-BR'),
-                            telemetry.totalTransactions.toLocaleString('pt-BR'),
-                            `${cascade}x`,
-                            telemetry.totalUnits.toString(),
-                            (telemetry.operations["Exclusão"] || 0).toLocaleString('pt-BR'),
-                            (telemetry.operations["Edição"] || 0).toLocaleString('pt-BR'),
-                            (telemetry.operations["Inclusão"] || 0).toLocaleString('pt-BR')
-                        ]],
-                        headStyles: { fillColor: brandBlue, textColor: 255, fontSize: 7.5, halign: 'center' },
-                        bodyStyles: { fontSize: 8, textColor: slateDark, halign: 'center', fontStyle: 'bold' },
-                        theme: 'grid'
-                    });
-                    curY = doc.lastAutoTable.finalY + 7;
-                }
-
-                // Section 3: Forensic Risk Matrix
-                if (incRisks) {
-                    doc.setFont('helvetica', 'bold');
-                    doc.setFontSize(9);
-                    doc.setTextColor(...slateDark);
-                    doc.text("2. MATRIZ DE EXCEÇÕES E ACHADOS FORENSES DE CONFORMIDADE", 14, curY);
-
-                    doc.autoTable({
-                        startY: curY + 2,
-                        margin: { left: 14, right: 14 },
-                        head: [["Achado Forense", "Severidade", "Volume", "Síntese Técnica da Evidência"]],
-                        body: FORENSIC_FINDINGS.map(f => [
-                            f.title,
-                            f.severity,
-                            f.occurrences,
-                            f.summary
-                        ]),
-                        headStyles: { fillColor: navy, textColor: 255, fontSize: 7.5 },
-                        bodyStyles: { fontSize: 7.2, textColor: slateDark },
-                        columnStyles: {
-                            0: { cellWidth: 42, fontStyle: 'bold' },
-                            1: { cellWidth: 20, halign: 'center', fontStyle: 'bold' },
-                            2: { cellWidth: 22, halign: 'center' },
-                            3: { cellWidth: 98 }
-                        },
-                        theme: 'grid'
-                    });
-                    curY = doc.lastAutoTable.finalY + 7;
-                }
-
-                // Section 4: Daily Workday Chronology
-                if (incWorkday) {
-                    if (curY > 215) { doc.addPage(); curY = 18; }
-                    doc.setFont('helvetica', 'bold');
-                    doc.setFontSize(9);
-                    doc.setTextColor(...slateDark);
-                    doc.text("3. CRONOLOGIA DIÁRIA DE JORNADA DE TRABALHO E SESSÕES", 14, curY);
-
-                    doc.autoTable({
-                        startY: curY + 2,
-                        margin: { left: 14, right: 14 },
-                        head: [["Data", "Dia", "Primeiro Log", "Último Log", "Duração", "Sessões", "Transações", "Registros"]],
-                        body: telemetry.daily.map(d => [
-                            d.date, d.weekday, d.start, d.end, d.span,
-                            d.sessions.toString(),
-                            d.tx.toLocaleString('pt-BR'),
-                            d.records.toLocaleString('pt-BR')
-                        ]),
-                        headStyles: { fillColor: [51, 65, 85], textColor: 255, fontSize: 7.5, halign: 'center' },
-                        bodyStyles: { fontSize: 7.5, textColor: slateDark, halign: 'center' },
-                        theme: 'striped'
-                    });
-                    curY = doc.lastAutoTable.finalY + 7;
-                }
-
-                // Section 5: Sample Critical Evidence Records
-                if (incSamples) {
-                    if (curY > 210) { doc.addPage(); curY = 18; }
-                    doc.setFont('helvetica', 'bold');
-                    doc.setFontSize(9);
-                    doc.setTextColor(...slateDark);
-                    doc.text("4. AMOSTRA DE EVIDÊNCIAS CRÍTICAS (DECOMPOSIÇÃO ANTES VS. DEPOIS)", 14, curY);
-
-                    doc.autoTable({
-                        startY: curY + 2,
-                        margin: { left: 14, right: 14 },
-                        head: [["Data / Hora", "Unid.", "Entidade", "Operação", "Evidência Chave=Valor", "Tx ID"]],
-                        body: records.slice(0, 14).map(r => [
-                            r.dataHora,
-                            r.unNeg,
-                            r.entidade,
-                            r.operacao,
-                            buildRecordSummary(r),
-                            r.transacao
-                        ]),
-                        headStyles: { fillColor: navy, textColor: 255, fontSize: 7.5 },
-                        bodyStyles: { fontSize: 7, textColor: slateDark },
-                        theme: 'grid'
-                    });
-                    curY = doc.lastAutoTable.finalY + 7;
-                }
-
-                // Auditor Notes & Cryptographic Integrity Footer Box
-                if (curY > 235) { doc.addPage(); curY = 18; }
-                doc.setFillColor(248, 250, 252);
-                doc.setDrawColor(203, 213, 225);
-                doc.rect(14, curY, 182, 30, 'FD');
-
-                doc.setFont('helvetica', 'bold');
-                doc.setFontSize(8);
-                doc.setTextColor(...slateDark);
-                doc.text("PARECER TÉCNICO DO AUDITOR E ASSINATURA DE INTEGRIDADE:", 18, curY + 6);
-
-                doc.setFont('helvetica', 'normal');
-                doc.setFontSize(7.5);
-                const splitNotes = doc.splitTextToSize(auditorNotes || "Sem observações adicionais.", 174);
-                doc.text(splitNotes, 18, curY + 11.5);
-
-                doc.setFont('courier', 'bold');
-                doc.setFontSize(7);
-                doc.setTextColor(...brandBlue);
-                doc.text(`SHA-256 VERIFICATION HASH: 9F86D081884C7D659A2FEAA0C55AD015A3BF4F1B2B0B822CD15D6C15B0F00A08`, 18, curY + 26);
-
-                // Page Numbers on All Pages
-                const totalPages = doc.internal.getNumberOfPages();
-                for (let p = 1; p <= totalPages; p++) {
-                    doc.setPage(p);
-                    doc.setFont('helvetica', 'normal');
-                    doc.setFontSize(7);
-                    doc.setTextColor(...slateMuted);
-                    doc.text(`AuditTrail GRC Forensics • Dossiê ${telemetry.user} • Página ${p} de ${totalPages}`, 14, 290);
-                    doc.text("GERADO LOCALMENTE VIA MOTOR FORENSE VERIFICADO", 132, 290);
-                }
-
-                doc.save(`Parecer_Auditoria_Forense_CELSO_BRENO.pdf`);
-                closePdfModal();
-                notifyToast("Parecer Técnico Pericial (PDF) gerado e baixado!", "success");
-            } catch (err) {
-                console.error(err);
-                notifyToast("Erro ao gerar o PDF. Verifique o console.", "error");
-            }
-        }
-
-        // =====================================================================
-        // EXPORT ENRICHED CSV
-        // =====================================================================
-        function exportEnrichedCSV() {
-            const headers = ["Data_Hora", "Unidade_Negocio", "Usuario", "Entidade", "Operacao", "Resumo_Forense", "Transacao", "Revisao", "Valor_Anterior", "Valor_Posterior"];
-            const csvRows = [headers.join(';')];
-
-            filteredRecords.forEach(r => {
-                const row = [
-                    r.dataHora,
-                    r.unNeg,
-                    r.usuario,
-                    r.entidade,
-                    r.operacao,
-                    buildRecordSummary(r).replace(/;/g, ','),
-                    r.transacao,
-                    r.revisao,
-                    (r.valorAnterior || '').replace(/;/g, '|'),
-                    (r.valorPosterior || '').replace(/;/g, '|')
-                ].map(v => `"${String(v).replace(/"/g, '""')}"`);
-                csvRows.push(row.join(';'));
-            });
-
-            const blob = new Blob(["\uFEFF" + csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `Trilha_Forense_Enriquecida_CELSO_BRENO.csv`;
-            a.click();
-            URL.revokeObjectURL(url);
-            notifyToast(`CSV exportado com ${filteredRecords.length} registros filtrados.`, "success");
-        }
-
-        // =====================================================================
-        // NAVIGATION & UI UTILITIES
-        // =====================================================================
-        function switchView(viewId) {
-            document.querySelectorAll('.view-section').forEach(s => s.classList.add('hidden'));
-            const target = document.getElementById(viewId);
-            if (target) target.classList.remove('hidden');
-
-            document.querySelectorAll('.sidebar-nav-btn').forEach(b => b.classList.remove('active'));
-            const btn = document.getElementById(`nav-${viewId}`);
-            if (btn) btn.classList.add('active');
-
-            const titles = {
-                'view-overview': '1. Visão Executiva & Telemetria Forense',
-                'view-risk': '2. Matriz de Riscos & Achados de Conformidade (SOX / GRC)',
-                'view-footprint': '3. Jornada de Trabalho, Sessões & Navegação de Menus',
-                'view-explorer': '4. Explorador Forense & Inspetor de Diff (Antes vs. Depois)'
-            };
-            document.getElementById('topbar-view-title').textContent = titles[viewId] || 'AuditTrail GRC';
-        }
-
-        function notifyToast(message, type = 'info') {
-            const stack = document.getElementById('toast-stack');
-            const styles = {
-                info: 'bg-obsidian-950 text-white border-slate-700',
-                success: 'bg-emerald-950 text-emerald-100 border-emerald-700',
-                error: 'bg-rose-950 text-rose-100 border-rose-700'
-            };
-            const icons = {
-                info: 'fa-solid fa-circle-info text-sky-400',
-                success: 'fa-solid fa-circle-check text-emerald-400',
-                error: 'fa-solid fa-circle-exclamation text-rose-400'
-            };
-
-            const el = document.createElement('div');
-            el.className = `px-3.5 py-2.5 rounded-md border shadow-lg text-xs font-medium flex items-center gap-2.5 pointer-events-auto transition-all duration-300 ${styles[type] || styles.info}`;
-            el.innerHTML = `<i class="${icons[type] || icons.info}"></i><span>${message}</span>`;
-            stack.appendChild(el);
-
-            setTimeout(() => {
-                el.style.opacity = '0';
-                setTimeout(() => el.remove(), 250);
-            }, 3400);
-        }
-
-        // Initialize on Window Load
-        window.onload = function() {
-            setupFileIngestion();
-            renderAllViews();
-        };
-    </script>
+    <script src="data/initial-telemetry.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/diff-engine.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/pdf-report.js"></script>
+    <script src="js/ingestion.js"></script>
+    <script src="js/app.js"></script>
 </body>
 </html>
