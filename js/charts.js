@@ -20,9 +20,61 @@ function renderOverviewCharts() {
     const tickColor = '#64748B';
 
     // 1. Gráfico Diário Combo (Barras: Registros Banco | Linha: Transações Humanas)
-    const dailyLabels = telemetry.daily.map(d => `${d.label} (${d.weekday.substring(0, 3)})`);
-    const dailyRecords = telemetry.daily.map(d => d.records);
-    const dailyTx = telemetry.daily.map(d => d.tx);
+    const dailyArr = telemetry.daily || [];
+    const dailyLabels = dailyArr.map(d => `${d.label} (${(d.weekday || '').substring(0, 3)})`);
+    const dailyRecords = dailyArr.map(d => d.records);
+    const dailyTx = dailyArr.map(d => d.tx);
+
+    const dailySub = document.getElementById('chart-daily-subtitle');
+    if (dailySub) {
+        if (dailyArr.length > 0) {
+            const topDay = [...dailyArr].sort((a,b) => b.records - a.records)[0];
+            dailySub.textContent = `Pico diário em ${topDay.date} com ${formatNumber(topDay.records)} registros de banco e ${formatNumber(topDay.tx)} transações`;
+        } else {
+            dailySub.textContent = 'Correlação diária de cliques de usuário vs. registros gerados em cascata no banco de dados';
+        }
+    }
+
+    const hourlyArr = telemetry.hourly || [];
+    const topHour = [...hourlyArr].sort((a,b) => b.count - a.count)[0];
+    const hourlyBadge = document.getElementById('chart-hourly-badge');
+    if (hourlyBadge) {
+        hourlyBadge.textContent = topHour && topHour.count > 0 ? `Pico ${topHour.hour}` : 'Curva 24h';
+    }
+    const hourlySub = document.getElementById('chart-hourly-subtitle');
+    if (hourlySub) {
+        if (topHour && topHour.count > 0) {
+            hourlySub.textContent = `Pico de atividade concentrado às ${topHour.hour} com ${formatNumber(topHour.count)} operações registradas`;
+        } else {
+            hourlySub.textContent = 'Distribuição das operações por faixa horária ao longo do expediente';
+        }
+    }
+
+    const unitsArr = telemetry.units || [];
+    const unitsBadge = document.getElementById('chart-units-badge');
+    if (unitsBadge) unitsBadge.textContent = `${telemetry.totalUnits || 0} unidades`;
+    const unitsSub = document.getElementById('chart-units-subtitle');
+    if (unitsSub) {
+        if (unitsArr.length > 0) {
+            const topU = unitsArr[0];
+            const pct = telemetry.totalRecords > 0 ? ((topU.count / telemetry.totalRecords) * 100).toFixed(1).replace('.', ',') : '0';
+            unitsSub.textContent = `${topU.unit === 'ESC' ? 'Matriz ESC' : 'Filial ' + topU.unit} lidera com ${pct}% do volume, seguida por ${unitsArr.slice(1, 4).map(u => u.unit).join(', ')}`;
+        } else {
+            unitsSub.textContent = 'Concentração do volume operacional por filial ou matriz';
+        }
+    }
+
+    const entsArr = telemetry.entities || [];
+    const entBadge = document.getElementById('chart-entities-badge');
+    if (entBadge) entBadge.textContent = `${telemetry.totalEntities || 0} entidades`;
+    const entSub = document.getElementById('chart-entities-subtitle');
+    if (entSub) {
+        if (entsArr.length > 0) {
+            entSub.textContent = `Tabelas mais impactadas: ${entsArr.slice(0, 4).map(e => e.entity).join(', ')}`;
+        } else {
+            entSub.textContent = 'Tabelas e objetos com maior quantidade de mutações registradas';
+        }
+    }
 
     const canvasDaily = document.getElementById('chartDailyCombo');
     if (canvasDaily) {
@@ -74,7 +126,7 @@ function renderOverviewCharts() {
                     onClick: (evt, activeEls) => {
                         if (activeEls && activeEls.length > 0) {
                             const idx = activeEls[0].index;
-                            const dayObj = telemetry.daily[idx];
+                            const dayObj = (telemetry.daily || [])[idx];
                             if (dayObj && dayObj.date) {
                                 filterByDate(dayObj.date);
                             }
@@ -98,9 +150,9 @@ function renderOverviewCharts() {
         }
     }
 
-    // 2. Curva de Ritmo Operacional por Hora (07h às 18h)
-    const hourlyLabels = telemetry.hourly.map(h => h.hour);
-    const hourlyCounts = telemetry.hourly.map(h => h.count);
+    // 2. Curva de Ritmo Operacional por Hora (00h às 23h)
+    const hourlyLabels = hourlyArr.map(h => h.hour);
+    const hourlyCounts = hourlyArr.map(h => h.count);
 
     const canvasHourly = document.getElementById('chartHourlyCurve');
     if (canvasHourly) {
@@ -120,8 +172,8 @@ function renderOverviewCharts() {
                         backgroundColor: 'rgba(37, 99, 235, 0.08)',
                         borderWidth: 2,
                         fill: true,
-                        pointBackgroundColor: telemetry.hourly.map(h => h.hour === '15h' ? '#BE123C' : '#2563EB'),
-                        pointRadius: telemetry.hourly.map(h => h.hour === '15h' ? 5 : 3),
+                        pointBackgroundColor: hourlyArr.map(h => h.hour === '15h' ? '#BE123C' : '#2563EB'),
+                        pointRadius: hourlyArr.map(h => h.hour === '15h' ? 5 : 3),
                         tension: 0.3
                     }]
                 },
@@ -139,7 +191,7 @@ function renderOverviewCharts() {
     }
 
     // 3. Distribuição por Unidade de Negócio (Top 10)
-    const topUnits = telemetry.units.slice(0, 10);
+    const topUnits = unitsArr.slice(0, 10);
     const unitsLabels = topUnits.map(u => u.unit === 'ESC' ? 'ESC (Matriz)' : `Filial ${u.unit}`);
     const unitsCounts = topUnits.map(u => u.count);
 
@@ -176,7 +228,7 @@ function renderOverviewCharts() {
     }
 
     // 4. Entidades de Banco de Dados Mais Afetadas (Top 10)
-    const topEnts = telemetry.entities.slice(0, 10);
+    const topEnts = entsArr.slice(0, 10);
     const entsLabels = topEnts.map(e => e.entity.length > 28 ? e.entity.substring(0, 26) + '…' : e.entity);
     const entsCounts = topEnts.map(e => e.count);
 
