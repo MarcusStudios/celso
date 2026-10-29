@@ -162,13 +162,65 @@ code, pre, .font-mono {
 /* Interactive Table Row Accessibility & Focus */
 .enterprise-table tr.clickable-row {
     cursor: pointer;
-    transition: background-color 0.12s ease;
+    transition: background-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.enterprise-table tr.clickable-row:hover {
+    background-color: #F8FAFC;
 }
 
 .enterprise-table tr.clickable-row:focus {
     outline: 2px solid #2563EB;
     outline-offset: -2px;
     background-color: #EFF6FF;
+}
+
+.enterprise-table tr.selected-log-row {
+    background-color: #EFF6FF !important;
+    box-shadow: inset 3px 0 0 0 #2563EB;
+}
+
+.enterprise-table tr.selected-log-row td {
+    border-bottom-color: #DBEAFE;
+}
+
+/* Forensic Value Diff Chips */
+.diff-val-old {
+    display: inline-block;
+    padding: 0.1rem 0.4rem;
+    border-radius: 0.25rem;
+    background-color: #FFE4E6;
+    color: #9F1239;
+    text-decoration: line-through;
+    text-decoration-color: rgba(159, 18, 57, 0.55);
+    font-weight: 500;
+    word-break: break-all;
+}
+
+.diff-val-new {
+    display: inline-block;
+    padding: 0.1rem 0.4rem;
+    border-radius: 0.25rem;
+    background-color: #D1FAE5;
+    color: #065F46;
+    font-weight: 700;
+    word-break: break-all;
+}
+
+.diff-chip-arrow {
+    color: #94A3B8;
+    margin: 0 0.2rem;
+    font-size: 10px;
+}
+
+/* Active Quick Filter Pill State */
+.forensic-filter-pill {
+    transition: all 0.15s ease;
+}
+
+.forensic-filter-pill.active-pill {
+    box-shadow: 0 0 0 2px #0F172A;
+    transform: translateY(-1px);
 }
 
 /* Subtle Custom Scrollbars */

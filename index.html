@@ -45,8 +45,8 @@
     <!-- FontAwesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-    <!-- Bibliotecas Externas: SheetJS, Chart.js, jsPDF -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Bibliotecas Externas: SheetJS (Versão Segura), Chart.js, jsPDF -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
@@ -187,6 +187,20 @@
                             <span class="truncate">Embalagens & Fator</span>
                         </span>
                         <span class="font-mono text-[10px] text-slate-500 tabular-nums" id="side-badge-packaging">0</span>
+                    </button>
+                    <button onclick="inspectAnomaly('after_hours')" class="w-full text-left px-2.5 py-1.5 rounded text-xs text-slate-400 hover:text-white hover:bg-obsidian-800/60 flex items-center justify-between transition cursor-pointer">
+                        <span class="flex items-center gap-2 truncate">
+                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span>
+                            <span class="truncate">Atividades Extra-Expediente</span>
+                        </span>
+                        <span class="font-mono text-[10px] text-slate-500 tabular-nums" id="side-badge-after-hours">0</span>
+                    </button>
+                    <button onclick="inspectAnomaly('deletions')" class="w-full text-left px-2.5 py-1.5 rounded text-xs text-slate-400 hover:text-white hover:bg-obsidian-800/60 flex items-center justify-between transition cursor-pointer">
+                        <span class="flex items-center gap-2 truncate">
+                            <span class="w-1.5 h-1.5 rounded-full bg-rose-600 shrink-0"></span>
+                            <span class="truncate">Exclusões de Dados</span>
+                        </span>
+                        <span class="font-mono text-[10px] text-slate-500 tabular-nums" id="side-badge-deletions">0</span>
                     </button>
                 </div>
             </div>
@@ -589,10 +603,11 @@
                     <div class="p-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <div>
                             <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800" id="footprint-workday-title">Cronologia Diária de Jornada de Trabalho</h3>
-                            <p class="text-xs text-slate-500" id="footprint-workday-sub">Mapeamento do primeiro ao último registro por dia da planilha</p>
+                            <p class="text-xs text-slate-500" id="footprint-workday-sub">Clique em qualquer dia abaixo para inspecionar os logs correspondentes no Explorador Forense</p>
                         </div>
-                        <div class="flex items-center gap-2 text-[11px] font-mono text-slate-500">
-                            <span class="inline-block w-2.5 h-2.5 rounded-xs bg-brand-600"></span> Janela de Expediente Ativo (07h às 19h)
+                        <div class="flex items-center gap-3 text-[11px] font-mono text-slate-500">
+                            <span class="inline-flex items-center gap-1.5"><span class="inline-block w-2.5 h-2.5 rounded-xs bg-brand-600"></span> Expediente Normal</span>
+                            <span class="inline-flex items-center gap-1.5"><span class="inline-block w-2.5 h-2.5 rounded-xs bg-amber-500"></span> Extra-Expediente / Fim de Semana</span>
                         </div>
                     </div>
                     <div class="overflow-x-auto">
@@ -604,7 +619,15 @@
                                     <th class="py-2.5 px-2.5">Primeiro Log</th>
                                     <th class="py-2.5 px-2.5">Último Log</th>
                                     <th class="py-2.5 px-2.5">Janela</th>
-                                    <th class="py-2.5 px-3 w-64">Régua Visual (07:00 &mdash; 19:00)</th>
+                                    <th class="py-2.5 px-3 w-72">
+                                        <div class="flex items-center justify-between text-[10px]">
+                                            <span>00h</span>
+                                            <span class="text-slate-400">06h</span>
+                                            <span class="text-brand-600 font-bold">12h</span>
+                                            <span class="text-slate-400">18h</span>
+                                            <span>24h</span>
+                                        </div>
+                                    </th>
                                     <th class="py-2.5 px-2.5 text-right">Sessões</th>
                                     <th class="py-2.5 px-2.5 text-right">Transações</th>
                                     <th class="py-2.5 px-3 text-right">Registros</th>
@@ -621,7 +644,7 @@
                             <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
                                 <div>
                                     <h4 class="text-xs font-bold uppercase tracking-wider text-slate-800">Rotas de Menus Acessadas (AcessoRecursoSistema)</h4>
-                                    <p class="text-xs text-slate-500" id="footprint-menu-sub">Aberturas de módulos registradas pela telemetria de tela</p>
+                                    <p class="text-xs text-slate-500" id="footprint-menu-sub">Clique em uma rota para filtrar os acessos no Explorador</p>
                                 </div>
                                 <span class="pill-badge pill-slate font-mono" id="footprint-menu-badge">0 Telas</span>
                             </div>
@@ -646,7 +669,7 @@
                                             <th class="py-2 px-2">Unid.</th>
                                             <th class="py-2 px-2.5">ID Sessão</th>
                                             <th class="py-2 px-2.5">ID Estação</th>
-                                            <th class="py-2 px-2.5">Transação</th>
+                                            <th class="py-2 px-2.5 text-right">Transação</th>
                                         </tr>
                                     </thead>
                                     <tbody id="footprint-sessions-tbody" class="font-mono text-xs tabular-nums"></tbody>
@@ -666,7 +689,7 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-2.5">
                         <div class="lg:col-span-3 relative">
                             <i class="fa-solid fa-magnifying-glass text-slate-400 text-xs absolute left-3 top-2.5"></i>
-                            <input id="exp-search" oninput="applyExplorerFilters()" type="text" placeholder="Buscar atributo, XML, motivo, ID..." class="w-full pl-8 pr-3 py-1.5 text-xs rounded-md border border-slate-200 focus:outline-none focus:border-brand-600 text-slate-800">
+                            <input id="exp-search" type="text" placeholder="Buscar atributo, valor, XML, motivo, ID..." class="w-full pl-8 pr-3 py-1.5 text-xs rounded-md border border-slate-200 focus:outline-none focus:border-brand-600 text-slate-800">
                         </div>
                         <div class="lg:col-span-2">
                             <select id="exp-entity" onchange="applyExplorerFilters()" class="w-full px-2.5 py-1.5 text-xs rounded-md border border-slate-200 focus:outline-none focus:border-brand-600 text-slate-700 bg-white">
@@ -691,44 +714,83 @@
                             <input type="date" id="exp-date-end" onchange="applyExplorerFilters()" class="w-1/2 px-1.5 py-1 text-xs rounded border border-slate-200 text-slate-700 bg-white" title="Data Final">
                         </div>
                         <div class="lg:col-span-1 flex gap-1">
-                            <button onclick="resetExplorerFilters()" class="w-full py-1.5 px-2 rounded-md text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition cursor-pointer" title="Limpar Filtros">
+                            <button onclick="resetExplorerFilters()" class="w-full py-1.5 px-2 rounded-md text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition cursor-pointer flex items-center justify-center gap-1" title="Limpar Todos os Filtros">
                                 <i class="fa-solid fa-rotate-left"></i>
+                                <span class="lg:hidden">Limpar</span>
                             </button>
                         </div>
                     </div>
 
-                    <!-- Pílulas de Atalhos Forenses -->
+                    <!-- Pílulas de Atalhos Forenses & Filtros Ativos -->
                     <div class="flex items-center justify-between flex-wrap gap-2 pt-2 border-t border-slate-100">
-                        <div class="flex items-center gap-1.5 flex-wrap">
+                        <div class="flex items-center gap-1.5 flex-wrap" id="explorer-quick-pills">
                             <span class="text-[10px] font-mono uppercase tracking-wider font-semibold text-slate-400 mr-1">Filtros Forenses:</span>
-                            <button onclick="setQuickFilter('AcessoRecursoSistema', '', 'Log de Operações')" class="pill-badge pill-crimson hover:opacity-90 cursor-pointer">Autoauditoria Log (2)</button>
-                            <button onclick="setQuickFilter('Fornecedor', '', 'ignorarConferencia')" class="pill-badge pill-crimson hover:opacity-90 cursor-pointer">Bypass NFe Fornecedor (9)</button>
-                            <button onclick="setQuickFilter('EstornoItemRecebimentoFisico', '', '')" class="pill-badge pill-amber hover:opacity-90 cursor-pointer">Estornos Físicos (8)</button>
-                            <button onclick="setQuickFilter('LiberacaoUsuario', '', '')" class="pill-badge pill-indigo hover:opacity-90 cursor-pointer">Liberações Alçada (3)</button>
-                            <button onclick="setQuickFilter('AlteracaoPreco', '', '')" class="pill-badge pill-amber hover:opacity-90 cursor-pointer">Preços Manuais</button>
-                            <button onclick="setQuickFilter('ItemNotaFiscal', 'Edição', '')" class="pill-badge pill-slate hover:opacity-90 cursor-pointer">Edição Item NFe</button>
-                            <button onclick="setQuickFilter('Arquivo', '', '')" class="pill-badge pill-emerald hover:opacity-90 cursor-pointer">Uploads XML (3)</button>
+                            <button data-anomaly-pill="self_audit" onclick="inspectAnomaly('self_audit')" class="forensic-filter-pill pill-badge pill-crimson hover:opacity-90 cursor-pointer"><i class="fa-solid fa-user-secret text-[9px]"></i>Autoauditoria Log</button>
+                            <button data-anomaly-pill="supplier_bypass" onclick="inspectAnomaly('supplier_bypass')" class="forensic-filter-pill pill-badge pill-crimson hover:opacity-90 cursor-pointer"><i class="fa-solid fa-shield-virus text-[9px]"></i>Bypass NFe</button>
+                            <button data-anomaly-pill="physical_reversal" onclick="inspectAnomaly('physical_reversal')" class="forensic-filter-pill pill-badge pill-amber hover:opacity-90 cursor-pointer"><i class="fa-solid fa-truck-ramp-box text-[9px]"></i>Estornos Físicos</button>
+                            <button data-anomaly-pill="clearance" onclick="inspectAnomaly('clearance')" class="forensic-filter-pill pill-badge pill-indigo hover:opacity-90 cursor-pointer"><i class="fa-solid fa-key text-[9px]"></i>Liberações Alçada</button>
+                            <button data-anomaly-pill="manual_price" onclick="inspectAnomaly('manual_price')" class="forensic-filter-pill pill-badge pill-amber hover:opacity-90 cursor-pointer"><i class="fa-solid fa-tag text-[9px]"></i>Preços Manuais</button>
+                            <button data-anomaly-pill="packaging_change" onclick="inspectAnomaly('packaging_change')" class="forensic-filter-pill pill-badge pill-indigo hover:opacity-90 cursor-pointer"><i class="fa-solid fa-boxes-stacked text-[9px]"></i>Embalagens</button>
+                            <button data-anomaly-pill="after_hours" onclick="inspectAnomaly('after_hours')" class="forensic-filter-pill pill-badge pill-amber hover:opacity-90 cursor-pointer"><i class="fa-solid fa-moon text-[9px]"></i>Extra-Expediente</button>
+                            <button data-anomaly-pill="deletions" onclick="inspectAnomaly('deletions')" class="forensic-filter-pill pill-badge pill-crimson hover:opacity-90 cursor-pointer"><i class="fa-solid fa-trash-can text-[9px]"></i>Exclusões</button>
+                            <button data-anomaly-pill="xml_upload" onclick="inspectAnomaly('xml_upload')" class="forensic-filter-pill pill-badge pill-emerald hover:opacity-90 cursor-pointer"><i class="fa-solid fa-file-code text-[9px]"></i>Uploads XML</button>
                         </div>
 
-                        <div id="active-tx-pill" class="hidden items-center gap-1.5 bg-brand-50 text-brand-700 border border-brand-100 px-2.5 py-0.5 rounded text-xs font-mono">
-                            <span>Transação Filtrada: <strong id="active-tx-val"></strong></span>
-                            <button onclick="clearTxFilter()" class="text-brand-700 hover:text-brand-900 ml-1 cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <div id="active-finding-pill" class="hidden items-center gap-1.5 bg-slate-900 text-white px-2.5 py-0.5 rounded text-xs font-mono">
+                                <i class="fa-solid fa-filter text-sky-400 text-[10px]"></i>
+                                <span id="active-finding-val">Filtro Ativo</span>
+                                <button onclick="resetExplorerFilters()" class="text-slate-300 hover:text-white ml-1 cursor-pointer" title="Remover filtro"><i class="fa-solid fa-xmark"></i></button>
+                            </div>
+                            <div id="active-tx-pill" class="hidden items-center gap-1.5 bg-brand-50 text-brand-700 border border-brand-200 px-2.5 py-0.5 rounded text-xs font-mono font-semibold">
+                                <i class="fa-solid fa-sitemap text-brand-600 text-[10px]"></i>
+                                <span>Cascata Tx: <strong id="active-tx-val"></strong></span>
+                                <button onclick="clearTxFilter()" class="text-brand-700 hover:text-brand-900 ml-1 cursor-pointer" title="Sair da cascata"><i class="fa-solid fa-xmark"></i></button>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Painel Split-Pane Master-Detail -->
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-                    <!-- Tabela Master (Painel Esquerdo) -->
+                    <!-- Tabela Master de Resultados de Logs (Painel Esquerdo) -->
                     <div class="lg:col-span-7 surface-card overflow-hidden">
-                        <div class="px-4 py-2.5 border-b border-slate-200 flex items-center justify-between bg-slate-50/50">
-                            <div class="text-xs text-slate-600">
-                                Exibindo <strong id="exp-count" class="font-mono text-slate-900 tabular-nums">0</strong> registros localizados
+                        <!-- Barra de Telemetria do Filtro Atual & Paginação -->
+                        <div class="px-4 py-2.5 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 bg-slate-50/70">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <div class="text-xs text-slate-700">
+                                    <strong id="exp-count" class="font-mono text-slate-950 font-bold tabular-nums">0</strong> registros
+                                    <span class="text-slate-400 mx-0.5">•</span>
+                                    <span id="exp-tx-count" class="font-mono text-slate-600 tabular-nums">0</span> <span class="text-slate-500 text-[11px]">tx</span>
+                                </div>
+                                <!-- Resumo Rápido de Operações nos Resultados -->
+                                <div class="hidden sm:flex items-center gap-1 text-[10px] font-mono border-l border-slate-200 pl-2">
+                                    <button onclick="quickToggleOpFilter('Exclusão')" class="px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 transition cursor-pointer tabular-nums" title="Filtrar Exclusões">
+                                        Exc: <strong id="exp-stat-del">0</strong>
+                                    </button>
+                                    <button onclick="quickToggleOpFilter('Edição')" class="px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100 transition cursor-pointer tabular-nums" title="Filtrar Edições">
+                                        Edi: <strong id="exp-stat-edit">0</strong>
+                                    </button>
+                                    <button onclick="quickToggleOpFilter('Inclusão')" class="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 transition cursor-pointer tabular-nums" title="Filtrar Inclusões">
+                                        Inc: <strong id="exp-stat-add">0</strong>
+                                    </button>
+                                </div>
                             </div>
-                            <div class="flex items-center gap-1.5">
-                                <button onclick="changeExplorerPage(-1)" id="exp-prev" class="px-2 py-1 text-xs rounded border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 disabled:opacity-40 cursor-pointer"><i class="fa-solid fa-chevron-left"></i></button>
-                                <span id="exp-page-label" class="text-xs font-mono text-slate-600 px-2 tabular-nums">1 / 1</span>
-                                <button onclick="changeExplorerPage(1)" id="exp-next" class="px-2 py-1 text-xs rounded border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 disabled:opacity-40 cursor-pointer"><i class="fa-solid fa-chevron-right"></i></button>
+
+                            <div class="flex items-center gap-2">
+                                <span class="hidden xl:inline-flex items-center gap-1 text-[10px] font-mono text-slate-400 bg-white px-1.5 py-0.5 rounded border border-slate-200" title="Use as setas Cima/Baixo do teclado para navegar entre os logs">
+                                    <i class="fa-solid fa-arrows-up-down text-[9px]"></i> ↑↓
+                                </span>
+                                <select id="exp-page-size" onchange="changeExplorerPageSize(this.value)" class="px-1.5 py-1 text-[11px] font-mono rounded border border-slate-200 bg-white text-slate-600 focus:outline-none focus:border-brand-600" title="Registros por página">
+                                    <option value="18">18 / pág</option>
+                                    <option value="40">40 / pág</option>
+                                    <option value="80">80 / pág</option>
+                                </select>
+                                <div class="flex items-center gap-1">
+                                    <button onclick="changeExplorerPage(-1)" id="exp-prev" class="px-2 py-1 text-xs rounded border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 disabled:opacity-40 cursor-pointer" title="Página Anterior"><i class="fa-solid fa-chevron-left"></i></button>
+                                    <span id="exp-page-label" class="text-xs font-mono text-slate-700 font-semibold px-1.5 tabular-nums">1 / 1</span>
+                                    <button onclick="changeExplorerPage(1)" id="exp-next" class="px-2 py-1 text-xs rounded border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 disabled:opacity-40 cursor-pointer" title="Próxima Página"><i class="fa-solid fa-chevron-right"></i></button>
+                                </div>
                             </div>
                         </div>
 
@@ -737,10 +799,10 @@
                                 <thead>
                                     <tr>
                                         <th class="py-2.5 px-3">Data / Hora</th>
-                                        <th class="py-2.5 px-2">Unid.</th>
-                                        <th class="py-2.5 px-2.5">Entidade</th>
-                                        <th class="py-2.5 px-2">Operação</th>
-                                        <th class="py-2.5 px-2.5">Resumo Forense</th>
+                                        <th class="py-2.5 px-2">Filial</th>
+                                        <th class="py-2.5 px-2.5">Entidade / Objeto</th>
+                                        <th class="py-2.5 px-2">Ação</th>
+                                        <th class="py-2.5 px-2.5">Evidência & Mutação (Antes &rarr; Depois)</th>
                                         <th class="py-2.5 px-2.5 text-right">Transação</th>
                                     </tr>
                                 </thead>
@@ -750,22 +812,30 @@
                     </div>
 
                     <!-- Inspetor de Diff Lado a Lado (Painel Direito) -->
-                    <div class="lg:col-span-5 surface-card sticky top-20 overflow-hidden">
-                        <div class="p-4 border-b border-slate-200 bg-slate-50/70 flex items-start justify-between gap-2">
-                            <div>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-[10px] font-mono uppercase tracking-wider font-semibold text-slate-400">Inspetor Forense de Atributos</span>
+                    <div class="lg:col-span-5 surface-card sticky top-20 overflow-hidden shadow-xs">
+                        <!-- Cabeçalho do Inspetor -->
+                        <div class="p-3.5 border-b border-slate-200 bg-obsidian-950 text-white flex items-start justify-between gap-2">
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="text-[10px] font-mono uppercase tracking-wider font-semibold text-sky-400">Inspetor Forense de Log</span>
                                     <span id="diff-op-badge" class="pill-badge pill-slate">—</span>
+                                    <span id="diff-row-pos" class="text-[10px] font-mono text-slate-400"></span>
                                 </div>
-                                <h3 id="diff-title" class="text-sm font-bold text-slate-900 mt-1 font-mono">Selecione um registro</h3>
+                                <h3 id="diff-title" class="text-sm font-bold text-white mt-1 font-mono truncate">Selecione um registro</h3>
+                                <p id="diff-subtitle-summary" class="text-[11px] text-slate-300 mt-0.5 truncate font-sans">Clique em qualquer linha da tabela para decompor os atributos</p>
                             </div>
-                            <button id="btn-filter-same-tx" onclick="filterByCurrentTx()" class="px-2.5 py-1.5 rounded text-[11px] font-mono font-medium bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 shadow-2xs transition shrink-0 cursor-pointer">
-                                <i class="fa-solid fa-sitemap text-brand-600 mr-1"></i>Ver Cascata Tx #<span id="diff-tx-btn-label"></span>
-                            </button>
+                            <div class="flex items-center gap-1.5 shrink-0">
+                                <button onclick="copySelectedRecordEvidence()" class="p-1.5 rounded text-xs bg-obsidian-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition cursor-pointer" title="Copiar evidência formatada para a área de transferência">
+                                    <i class="fa-regular fa-copy"></i>
+                                </button>
+                                <button id="btn-filter-same-tx" onclick="filterByCurrentTx()" class="px-2.5 py-1.5 rounded text-[11px] font-mono font-semibold bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 transition shrink-0 cursor-pointer">
+                                    <i class="fa-solid fa-sitemap mr-1"></i>Cascata #<span id="diff-tx-btn-label">—</span>
+                                </button>
+                            </div>
                         </div>
 
                         <!-- Metadados do Registro -->
-                        <div class="grid grid-cols-4 gap-2 px-4 py-2.5 bg-white border-b border-slate-200 text-[11px] font-mono tabular-nums">
+                        <div class="grid grid-cols-4 gap-2 px-4 py-2.5 bg-slate-50/90 border-b border-slate-200 text-[11px] font-mono tabular-nums">
                             <div>
                                 <span class="text-slate-400 block text-[10px]">Carimbo de Tempo</span>
                                 <strong id="diff-meta-dt" class="text-slate-800">—</strong>
@@ -784,30 +854,60 @@
                             </div>
                         </div>
 
-                        <!-- Contadores de Diff -->
-                        <div class="px-4 py-2 bg-slate-50 border-b border-slate-200 flex items-center justify-between text-[11px] font-mono">
-                            <span class="text-slate-500">Decomposição <code>chave=valor</code>:</span>
-                            <div class="flex items-center gap-2">
-                                <span class="text-amber-700"><strong id="diff-count-mod">0</strong> alterados</span>
-                                <span class="text-slate-300">•</span>
-                                <span class="text-emerald-700"><strong id="diff-count-add">0</strong> novos</span>
-                                <span class="text-slate-300">•</span>
-                                <span class="text-rose-700"><strong id="diff-count-del">0</strong> removidos</span>
+                        <!-- Barra de Modo de Visualização de Diff & Busca Interna -->
+                        <div class="px-3.5 py-2 bg-white border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 text-[11px] font-mono">
+                            <div class="inline-flex rounded-md bg-slate-100 p-0.5 border border-slate-200/80">
+                                <button type="button" id="diff-tab-all" onclick="setDiffFilterMode('all')" class="px-2 py-0.5 rounded text-[10px] font-semibold bg-white text-slate-900 shadow-2xs transition cursor-pointer">
+                                    Todos (<span id="diff-count-total">0</span>)
+                                </button>
+                                <button type="button" id="diff-tab-changes" onclick="setDiffFilterMode('changes')" class="px-2 py-0.5 rounded text-[10px] font-medium text-slate-600 hover:text-slate-900 transition cursor-pointer">
+                                    Alterados (<span id="diff-count-mod">0</span>)
+                                </button>
+                                <button type="button" id="diff-tab-raw" onclick="setDiffFilterMode('raw')" class="px-2 py-0.5 rounded text-[10px] font-medium text-slate-600 hover:text-slate-900 transition cursor-pointer">
+                                    Bruto (Raw)
+                                </button>
+                            </div>
+
+                            <div class="flex items-center gap-2 text-[10px]">
+                                <span class="text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">+<strong id="diff-count-add">0</strong> novos</span>
+                                <span class="text-rose-700 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200">-<strong id="diff-count-del">0</strong> rem</span>
                             </div>
                         </div>
 
+                        <!-- Filtro Rápido de Atributo no Inspetor -->
+                        <div id="diff-attr-search-bar" class="px-3.5 py-1.5 bg-slate-50/60 border-b border-slate-200 flex items-center gap-2">
+                            <i class="fa-solid fa-filter text-slate-400 text-[10px]"></i>
+                            <input id="diff-attr-filter" type="text" oninput="renderDiffInspector(selectedRecord)" placeholder="Filtrar campo ou valor neste registro..." class="w-full text-[11px] font-mono bg-transparent text-slate-800 focus:outline-none">
+                        </div>
+
                         <!-- Tabela de Comparação Antes vs. Depois -->
-                        <div class="max-h-[460px] overflow-y-auto">
+                        <div id="diff-table-container" class="max-h-[460px] overflow-y-auto">
                             <table class="w-full text-left enterprise-table">
-                                <thead>
+                                <thead class="sticky top-0 z-10 shadow-2xs">
                                     <tr>
-                                        <th class="py-2 px-3">Campo / Atributo</th>
-                                        <th class="py-2 px-2.5">Valor Anterior (Antes)</th>
-                                        <th class="py-2 px-2.5">Valor Posterior (Depois)</th>
+                                        <th class="py-2 px-3 w-[36%]">Campo / Atributo</th>
+                                        <th class="py-2 px-2.5 w-[32%]">Antes (Anterior)</th>
+                                        <th class="py-2 px-2.5 w-[32%]">Depois (Posterior)</th>
                                     </tr>
                                 </thead>
                                 <tbody id="diff-tbody" class="font-mono text-[11px] tabular-nums"></tbody>
                             </table>
+                        </div>
+
+                        <!-- Visualizador de Payload Bruto (Oculto por padrão, ativo na aba Raw) -->
+                        <div id="diff-raw-container" class="hidden p-3.5 space-y-3 max-h-[460px] overflow-y-auto bg-slate-900 text-slate-200 font-mono text-[11px]">
+                            <div>
+                                <div class="text-[10px] uppercase tracking-wider text-rose-400 font-semibold mb-1 flex items-center justify-between">
+                                    <span>Valor Anterior (String Bruta)</span>
+                                </div>
+                                <pre id="diff-raw-ant" class="p-2.5 rounded bg-slate-950 border border-slate-800 text-rose-200/90 whitespace-pre-wrap break-all leading-relaxed max-h-44 overflow-y-auto">—</pre>
+                            </div>
+                            <div>
+                                <div class="text-[10px] uppercase tracking-wider text-emerald-400 font-semibold mb-1 flex items-center justify-between">
+                                    <span>Valor Posterior (String Bruta)</span>
+                                </div>
+                                <pre id="diff-raw-post" class="p-2.5 rounded bg-slate-950 border border-slate-800 text-emerald-200/90 whitespace-pre-wrap break-all leading-relaxed max-h-44 overflow-y-auto">—</pre>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -826,7 +926,7 @@
                     <i class="fa-solid fa-file-pdf text-sky-400"></i>
                     <div>
                         <h3 id="pdf-modal-title" class="text-sm font-semibold">Emitir Parecer Técnico Pericial (PDF)</h3>
-                        <p class="text-[11px] text-slate-400">Padrão GRC / SOX com assinatura criptográfica SHA-256 real</p>
+                        <p class="text-[11px] text-slate-400">Padrão GRC / SOX com verificação de integridade criptográfica SHA-256</p>
                     </div>
                 </div>
                 <button onclick="closePdfModal()" class="text-slate-400 hover:text-white cursor-pointer" aria-label="Fechar Modal">

@@ -19,7 +19,8 @@ function escapeHtml(str) {
 
 /**
  * Calcula o hash criptográfico SHA-256 de forma nativa e assíncrona.
- * @param {ArrayBuffer|string} input 
+ * Suporta String, ArrayBuffer ou Uint8Array.
+ * @param {ArrayBuffer|Uint8Array|string} input 
  * @returns {Promise<string>}
  */
 async function calculateSHA256(input) {
@@ -45,7 +46,6 @@ async function calculateSHA256(input) {
 
 /**
  * Parser resiliente para strings no formato chave=valor;chave2=valor2;
- * Suporta valores contendo ponto e vírgula escapados e espaços normais.
  * @param {string} raw 
  * @returns {Record<string, string>}
  */
@@ -53,7 +53,10 @@ function parseKeyValueString(raw) {
     const map = {};
     if (!raw) return map;
 
-    const tokens = raw.split(';');
+    const str = String(raw).trim();
+    if (!str) return map;
+
+    const tokens = str.split(';');
     for (let i = 0; i < tokens.length; i++) {
         const token = tokens[i].trim();
         if (!token) continue;
@@ -61,13 +64,71 @@ function parseKeyValueString(raw) {
         const idx = token.indexOf('=');
         if (idx > -1) {
             const key = token.substring(0, idx).trim();
-            const val = token.substring(idx + 1).trim();
-            map[key] = val;
+            let val = token.substring(idx + 1).trim();
+            // Remover aspas envoltórias se presentes
+            if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+                val = val.substring(1, val.length - 1);
+            }
+            if (key) map[key] = val;
         } else {
             map[token] = 'true';
         }
     }
     return map;
+}
+
+/**
+ * Converte valor numérico (brasileiro ou padrão internacional) para número de ponto flutuante.
+ * Suporta formatos como "1.250,50", "49,90", "1250.50".
+ * @param {any} val 
+ * @returns {number}
+ */
+function parseBRNumber(val) {
+    if (typeof val === 'number') return isNaN(val) ? 0 : val;
+    if (!val) return 0;
+    let s = String(val).trim();
+    if (s.includes(',') && s.includes('.')) {
+        // Ex: 1.250,50
+        s = s.replace(/\./g, '').replace(',', '.');
+    } else if (s.includes(',')) {
+        // Ex: 49,90
+        s = s.replace(',', '.');
+    }
+    const n = parseFloat(s);
+    return isNaN(n) ? 0 : n;
+}
+
+/**
+ * Normaliza carimbos de hora para formato canônico HH:mm:ss.
+ * @param {string} timeStr 
+ * @returns {string}
+ */
+function normalizeTimeStr(timeStr) {
+    if (!timeStr) return "00:00:00";
+    const parts = String(timeStr).trim().split(':').map(p => p.trim());
+    const h = String(parseInt(parts[0], 10) || 0).padStart(2, '0');
+    const m = String(parseInt(parts[1], 10) || 0).padStart(2, '0');
+    const s = String(parseInt(parts[2], 10) || 0).padStart(2, '0');
+    return `${h}:${m}:${s}`;
+}
+
+/**
+ * Sanitiza campos de texto para exportação CSV, preservando pontuação legítima
+ * e prevenindo ataques de CSV / Formula Injection (quando o valor inicia com =, +, -, @, \t, \r).
+ * @param {any} value 
+ * @returns {string}
+ */
+function sanitizeCSVField(value) {
+    if (value === null || value === undefined) return '""';
+    let str = String(value);
+
+    // Proteção contra Formula Injection (Excel / LibreOffice)
+    if (/^[=+\-@\t\r]/.test(str)) {
+        str = "'" + str;
+    }
+
+    // Escapar aspas duplas conforme RFC 4180
+    return `"${str.replace(/"/g, '""')}"`;
 }
 
 /**
@@ -86,6 +147,24 @@ function formatNumber(n) {
  */
 function formatCurrency(n) {
     return Number(n || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+/**
+ * Cria função debounced para otimização de eventos com alta frequência (ex: digitação de busca).
+ * @param {Function} func 
+ * @param {number} wait 
+ * @returns {Function}
+ */
+function debounce(func, wait = 200) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
 }
 
 /**

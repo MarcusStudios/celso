@@ -1,6 +1,6 @@
 /**
  * AuditTrail GRC — Motor de Ingestão e Processamento Dinâmico de Planilhas (SheetJS)
- * Extrai 100% dos dados, agregações, métricas e matriz de risco em tempo real.
+ * Extrai 100% dos dados, agregações, métricas, hashes criptográficos e matriz de risco em tempo real.
  */
 
 function setupFileIngestion() {
@@ -48,15 +48,20 @@ function setupFileIngestion() {
 
 /**
  * Lê o arquivo selecionado usando SheetJS e reconstrói todos os dados da plataforma.
+ * Calcula o hash SHA-256 do arquivo original para custódia pericial.
  * @param {File} file 
  */
-function ingestSpreadsheetFile(file) {
+async function ingestSpreadsheetFile(file) {
     notifyToast(`Lendo e processando planilha "${file.name}"...`, 'info');
     const reader = new FileReader();
     
-    reader.onload = function(evt) {
+    reader.onload = async function(evt) {
         try {
             const bytes = new Uint8Array(evt.target.result);
+            
+            // 1. Cálculo do Hash SHA-256 do Arquivo Original (Cadeia de Custódia)
+            const fileHash = await calculateSHA256(bytes);
+
             const workbook = XLSX.read(bytes, { 
                 type: 'array',
                 cellDates: true,
@@ -79,8 +84,8 @@ function ingestSpreadsheetFile(file) {
                 return;
             }
 
-            rebuildFromUploadedSheet(rawRows, file.name);
-            notifyToast(`Sucesso! ${formatNumber(rawRows.length)} registros extraídos e analisados em tempo real.`, "success");
+            await rebuildFromUploadedSheet(rawRows, file.name, fileHash);
+            notifyToast(`Sucesso! ${formatNumber(rawRows.length)} registros extraídos. Hash SHA-256 gerado.`, "success");
         } catch (err) {
             console.error("Erro na leitura da planilha:", err);
             notifyToast("Erro ao processar o arquivo. Certifique-se de ser um .xlsx, .xls ou .csv válido.", "error");
@@ -123,20 +128,58 @@ function normalizeHeaderKey(key) {
 }
 
 /**
+ * Converte data em string para objeto Date local (sem desvio de fuso horário UTC).
+ * @param {string} dateStr 
+ * @returns {Date|null}
+ */
+function parseDateComponents(dateStr) {
+    if (!dateStr) return null;
+    let clean = dateStr.trim();
+    if (clean.includes('T')) clean = clean.split('T')[0];
+    if (clean.includes(' ')) clean = clean.split(' ')[0];
+
+    if (clean.includes('/')) {
+        const parts = clean.split('/');
+        if (parts.length === 3) {
+            const d = parseInt(parts[0], 10);
+            const m = parseInt(parts[1], 10) - 1;
+            const y = parseInt(parts[2], 10);
+            return new Date(y, m, d);
+        }
+    } else if (clean.includes('-')) {
+        const parts = clean.split('-');
+        if (parts.length === 3) {
+            const y = parseInt(parts[0], 10);
+            const m = parseInt(parts[1], 10) - 1;
+            const d = parseInt(parts[2], 10);
+            return new Date(y, m, d);
+        }
+    }
+    return null;
+}
+
+/**
  * Reconstrói 100% da telemetria, agregadores, indicadores e achados a partir da planilha fornecida.
  * @param {Array<object>} rawRows 
  * @param {string} filename 
+ * @param {string} fileHash 
  */
-function rebuildFromUploadedSheet(rawRows, filename) {
+async function rebuildFromUploadedSheet(rawRows, filename, fileHash = "—") {
+    // 1. Limpeza de estado: reset integral garantindo sem herança da planilha anterior
+    telemetry = JSON.parse(JSON.stringify(INITIAL_TELEMETRY));
+    telemetry.sourceFileName = filename;
+    telemetry.sourceFileHash = fileHash;
+
     const newRecords = [];
     const txSet = new Set();
     const unitsMap = {};
     const entitiesMap = {};
-    const opsMap = { "Exclusão": 0, "Edição": 0, "Inclusão": 0 };
+    const opsMap = { "Exclusão": 0, "Edição": 0, "Inclusão": 0, "Indefinida": 0 };
     const dailyMap = {};
     const hourlyMap = {};
     const menuMap = {};
     const stationsMap = {};
+    const usersSet = new Set();
 
     let sessionCount = 0;
     let detectedUser = "";
@@ -145,6 +188,11 @@ function rebuildFromUploadedSheet(rawRows, filename) {
     let detectedHostname = "";
     let detectedOsHash = "";
     let detectedMainStation = "";
+
+    // Inicializar mapa de 24 horas (00h a 23h)
+    for (let h = 0; h < 24; h++) {
+        hourlyMap[String(h).padStart(2, '0') + 'h'] = 0;
+    }
 
     rawRows.forEach(row => {
         const normRow = {};
@@ -157,8 +205,8 @@ function rebuildFromUploadedSheet(rawRows, filename) {
         ).trim();
 
         const unNeg = String(
-            normRow['unneg'] || normRow['unidadenegocio'] || normRow['filial'] || normRow['unidade'] || 'ESC'
-        ).trim();
+            normRow['unneg'] || normRow['unidadenegocio'] || normRow['filial'] || normRow['unidade'] || ''
+        ).trim() || 'Não identificada';
 
         const usuario = String(
             normRow['usuario'] || normRow['user'] || normRow['colaborador'] || ''
@@ -175,7 +223,7 @@ function rebuildFromUploadedSheet(rawRows, filename) {
         if (operacao.toLowerCase().startsWith('exc')) operacao = 'Exclusão';
         else if (operacao.toLowerCase().startsWith('edi')) operacao = 'Edição';
         else if (operacao.toLowerCase().startsWith('inc')) operacao = 'Inclusão';
-        else if (!operacao) operacao = 'Edição';
+        else operacao = operacao || 'Indefinida';
 
         const valorPosterior = String(normRow['valorposterior'] || normRow['depois'] || normRow['novovalor'] || '');
         const valorAnterior = String(normRow['valoranterior'] || normRow['antes'] || normRow['valorantigo'] || '');
@@ -184,14 +232,20 @@ function rebuildFromUploadedSheet(rawRows, filename) {
         const versao = String(normRow['versao'] || normRow['version'] || '');
 
         if (!dataHora && !entidade) return;
-        if (!detectedUser && usuario) detectedUser = usuario;
+
+        if (usuario) {
+            usersSet.add(usuario);
+            if (!detectedUser) detectedUser = usuario;
+        }
+
         if (!detectedErpVersion && versao && versao !== '0') detectedErpVersion = versao;
         if (transacao) txSet.add(transacao);
 
         unitsMap[unNeg] = (unitsMap[unNeg] || 0) + 1;
-        entitiesMap[entidade] = (entitiesMap[entidade] || 0) + 1;
+        if (entidade) entitiesMap[entidade] = (entitiesMap[entidade] || 0) + 1;
         opsMap[operacao] = (opsMap[operacao] || 0) + 1;
 
+        // Pré-parse das strings de atributos estruturados (otimização massiva de memória/CPU)
         const kvPost = parseKeyValueString(valorPosterior);
         const kvAnt = parseKeyValueString(valorAnterior);
 
@@ -215,73 +269,97 @@ function rebuildFromUploadedSheet(rawRows, filename) {
             if (kvPost.menu) menuMap[kvPost.menu] = (menuMap[kvPost.menu] || 0) + 1;
         }
 
-        // Extração de hora
-        const parts = dataHora.split(' ');
-        const datePart = parts[0] || '';
-        let timePart = parts[1] || '';
-
-        // Suporte para datas ISO contendo T
-        let cleanDate = datePart;
+        // Extração de hora e normalização segura
+        let datePart = '';
+        let timePart = '';
         if (dataHora.includes('T')) {
             const isoParts = dataHora.split('T');
-            cleanDate = isoParts[0];
+            datePart = isoParts[0] || '';
             timePart = (isoParts[1] || '').substring(0, 8);
+        } else {
+            const parts = dataHora.split(' ');
+            datePart = parts[0] || '';
+            timePart = parts[1] || '';
         }
 
-        if (timePart) {
-            const hKey = timePart.substring(0, 2) + 'h';
-            hourlyMap[hKey] = (hourlyMap[hKey] || 0) + 1;
-        }
+        const normTime = normalizeTimeStr(timePart);
+        const hourNum = parseInt(normTime.substring(0, 2), 10) || 0;
+        const hKey = String(hourNum).padStart(2, '0') + 'h';
+        hourlyMap[hKey] = (hourlyMap[hKey] || 0) + 1;
 
-        if (cleanDate) {
-            if (!dailyMap[cleanDate]) {
-                const isSlash = cleanDate.includes('/');
-                let displayLabel = cleanDate.substring(0, 5);
+        // Data canônica e dia da semana
+        if (datePart) {
+            if (!dailyMap[datePart]) {
+                const parsedDateObj = parseDateComponents(datePart);
                 let weekdayName = "Dia";
-                
-                try {
-                    const parsedD = isSlash 
-                        ? new Date(cleanDate.split('/')[2], cleanDate.split('/')[1] - 1, cleanDate.split('/')[0])
-                        : new Date(cleanDate);
-                    const daysWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-                    weekdayName = daysWeek[parsedD.getDay()] || "Dia";
-                } catch (e) {}
+                let sortTimestamp = 0;
+                let displayLabel = datePart.substring(0, 5);
 
-                dailyMap[cleanDate] = { 
-                    date: cleanDate, 
+                if (parsedDateObj && !isNaN(parsedDateObj.getTime())) {
+                    const daysWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+                    weekdayName = daysWeek[parsedDateObj.getDay()] || "Dia";
+                    sortTimestamp = parsedDateObj.getTime();
+                    const dPad = String(parsedDateObj.getDate()).padStart(2, '0');
+                    const mPad = String(parsedDateObj.getMonth() + 1).padStart(2, '0');
+                    displayLabel = `${dPad}/${mPad}`;
+                }
+
+                dailyMap[datePart] = { 
+                    date: datePart, 
+                    sortTimestamp,
                     label: displayLabel, 
                     weekday: weekdayName, 
-                    start: timePart || '08:00:00', 
-                    end: timePart || '17:00:00', 
+                    start: normTime, 
+                    end: normTime, 
                     span: "—", 
                     records: 0, 
                     txSet: new Set(), 
                     sessions: 0 
                 };
             }
-            dailyMap[cleanDate].records++;
-            if (transacao) dailyMap[cleanDate].txSet.add(transacao);
-            if (entidade === 'SessaoUsuario') dailyMap[cleanDate].sessions++;
-            if (timePart && timePart < dailyMap[cleanDate].start) dailyMap[cleanDate].start = timePart;
-            if (timePart && timePart > dailyMap[cleanDate].end) dailyMap[cleanDate].end = timePart;
+
+            dailyMap[datePart].records++;
+            if (transacao) dailyMap[datePart].txSet.add(transacao);
+            if (entidade === 'SessaoUsuario') dailyMap[datePart].sessions++;
+            if (normTime < dailyMap[datePart].start) dailyMap[datePart].start = normTime;
+            if (normTime > dailyMap[datePart].end) dailyMap[datePart].end = normTime;
         }
 
-        newRecords.push({ dataHora, unNeg, usuario, entidade, operacao, valorPosterior, valorAnterior, revisao, transacao, versao });
+        // Criar registro enriquecido com cache embutido
+        const rec = { 
+            dataHora, 
+            unNeg, 
+            usuario, 
+            entidade, 
+            operacao, 
+            valorPosterior, 
+            valorAnterior, 
+            revisao, 
+            transacao, 
+            versao,
+            kvPost,
+            kvAnt
+        };
+        rec.summary = buildRecordSummary(rec);
+        rec.searchText = `${dataHora} ${unNeg} ${usuario} ${entidade} ${operacao} ${rec.summary} ${transacao} ${valorPosterior} ${valorAnterior}`.toLowerCase();
+
+        newRecords.push(rec);
     });
 
     const topStationEntry = Object.entries(stationsMap).sort((a,b)=>b[1]-a[1])[0];
     if (topStationEntry) detectedMainStation = topStationEntry[0];
 
-    // Atualizar Objeto Global Telemetry 100% dinâmico
-    telemetry.user = detectedUser || "Usuário não identificado";
+    // Atualizar Objeto Global Telemetry (sem dados fictícios inventados)
+    telemetry.user = detectedUser || (usersSet.size > 0 ? Array.from(usersSet).join(', ') : "Usuário não identificado");
     telemetry.userId = detectedUserId || "N/A";
-    telemetry.erpVersion = detectedErpVersion || "3.x";
-    telemetry.hostname = detectedHostname || (detectedMainStation ? `Host-${detectedMainStation}` : "N/A");
-    telemetry.osHash = detectedOsHash || "N/A";
+    telemetry.erpVersion = detectedErpVersion || "Não informada";
+    telemetry.hostname = detectedHostname || (detectedMainStation ? `Estação-${detectedMainStation}` : "Não identificado");
+    telemetry.osHash = detectedOsHash || "Não informado";
     telemetry.mainStation = detectedMainStation || "N/A";
+    telemetry.detectedUsers = Array.from(usersSet);
 
     telemetry.totalRecords = newRecords.length;
-    telemetry.totalTransactions = txSet.size || 1;
+    telemetry.totalTransactions = txSet.size;
     telemetry.totalUnits = Object.keys(unitsMap).length;
     telemetry.totalEntities = Object.keys(entitiesMap).length;
     telemetry.totalSessions = sessionCount;
@@ -295,32 +373,34 @@ function rebuildFromUploadedSheet(rawRows, filename) {
         .map(([entity, count]) => ({ entity, count }))
         .sort((a, b) => b.count - a.count);
 
+    // Módulos com alerta para rotas sensíveis (logs, auditoria, trilha)
+    const sensitiveRouteRegex = /log\s*de\s*opera|auditoria|trilha|seguran[çc]a|perfil|permiss/i;
     telemetry.menus = Object.entries(menuMap).map(([route, count]) => ({
-        route, count, risk: route.toLowerCase().includes('log')
+        route, 
+        count, 
+        risk: sensitiveRouteRegex.test(route)
     })).sort((a, b) => b.count - a.count);
     telemetry.totalMenuAccess = telemetry.menus.reduce((acc, m) => acc + m.count, 0);
 
-    // Curva horária 24h completa extraída dos dados
+    // Curva horária 24h completa
     const hoursArr = [];
     for (let h = 0; h < 24; h++) {
         const hKey = String(h).padStart(2, '0') + 'h';
-        if (hourlyMap[hKey] || (h >= 7 && h <= 19)) {
-            hoursArr.push({ hour: hKey, count: hourlyMap[hKey] || 0 });
-        }
+        hoursArr.push({ hour: hKey, count: hourlyMap[hKey] || 0 });
     }
     telemetry.hourly = hoursArr;
 
-    // Cronologia diária extraída dos dados
-    const daysArr = Object.values(dailyMap);
+    // Cronologia diária ordenada cronologicamente
+    const daysArr = Object.values(dailyMap).sort((a, b) => a.sortTimestamp - b.sortTimestamp);
     if (daysArr.length > 0) {
         daysArr.forEach(d => {
             d.tx = d.txSet.size;
             delete d.txSet;
-            const sH = parseInt(d.start.substring(0, 2)) || 8;
-            const sM = parseInt(d.start.substring(3, 5)) || 0;
-            const eH = parseInt(d.end.substring(0, 2)) || 17;
-            const eM = parseInt(d.end.substring(3, 5)) || 0;
-            const diffMin = Math.max(0, (eH * 60 + eM) - (sH * 60 + sM));
+            const sParts = d.start.split(':').map(Number);
+            const eParts = d.end.split(':').map(Number);
+            const sMin = (sParts[0] || 0) * 60 + (sParts[1] || 0);
+            const eMin = (eParts[0] || 0) * 60 + (eParts[1] || 0);
+            const diffMin = Math.max(0, eMin - sMin);
             const spH = Math.floor(diffMin / 60);
             const spM = diffMin % 60;
             d.span = `${String(spH).padStart(2, '0')}h ${String(spM).padStart(2, '0')}m`;
@@ -336,17 +416,18 @@ function rebuildFromUploadedSheet(rawRows, filename) {
     const dynamicFindings = [];
 
     // 1. Autoauditoria no Log de Operações
-    const logRecords = newRecords.filter(r => r.entidade === 'AcessoRecursoSistema' && r.valorPosterior.toLowerCase().includes('log de operações'));
+    const logRecords = newRecords.filter(r => r.entidade === 'AcessoRecursoSistema' && /log\s*de\s*opera/i.test(r.valorPosterior));
     if (logRecords.length > 0) {
         dynamicFindings.push({
             id: "self_audit",
             title: "1. Autoauditoria no Módulo 'Log de Operações'",
             severity: "CRÍTICO",
             badgeClass: "pill-crimson",
+            count: logRecords.length,
             occurrences: `${logRecords.length} acessos`,
-            entity: "AcessoRecursoSistema",
+            entities: ["AcessoRecursoSistema"],
             searchKey: "Log de Operações",
-            summary: `O usuário acessou diretamente a ferramenta de rastreamento de logs do ERP em ${logRecords.length} ocasiões, permitindo monitorar o que a própria auditoria rastreava.`,
+            summary: `O usuário realizou ${logRecords.length} acessos à funcionalidade de consulta e rastreamento de logs do ERP, permitindo acompanhar o monitoramento de auditoria.`,
             timestamps: logRecords.slice(0, 3).map(r => r.dataHora).join(' • '),
             controlRef: "Controle SOX ITGC-04 (Segregação de Monitoramento de Logs)"
         });
@@ -360,10 +441,11 @@ function rebuildFromUploadedSheet(rawRows, filename) {
             title: "2. Bypass de Conferência Automática de NFe em Fornecedor",
             severity: "CRÍTICO",
             badgeClass: "pill-crimson",
+            count: bypassRecords.length,
             occurrences: `${bypassRecords.length} registros`,
-            entity: "Fornecedor",
+            entities: ["Fornecedor"],
             searchKey: "ignorarConferencia",
-            summary: `Parâmetros definidos para ignorar conferência automática de notas fiscais em fornecedores, desabilitando conferência sistêmica (Three-Way Match).`,
+            summary: `Desativação da conferência automática de notas fiscais identificada em cadastros de fornecedores (${bypassRecords.length} eventos), suspendendo validações sistêmicas (Three-Way Match).`,
             timestamps: bypassRecords.slice(0, 3).map(r => r.dataHora).join(' • '),
             controlRef: "Controle P2P-09 (Three-Way Match Fiscal & Recebimento)"
         });
@@ -377,10 +459,11 @@ function rebuildFromUploadedSheet(rawRows, filename) {
             title: "3. Estornos de Recebimento Físico de Mercadoria",
             severity: "ALTO",
             badgeClass: "pill-amber",
+            count: reversalRecords.length,
             occurrences: `${reversalRecords.length} estornos`,
-            entity: "EstornoItemRecebimentoFisico",
+            entities: ["EstornoItemRecebimentoFisico"],
             searchKey: "",
-            summary: `Reversões manuais de mercadorias já recebidas fisicamente nas docas, alterando saldos de estoque contábil e de recebimento.`,
+            summary: `Registradas ${reversalRecords.length} reversões manuais de mercadorias após recebimento físico nas docas, alterando saldos de conferência e estoque.`,
             timestamps: reversalRecords.slice(0, 3).map(r => `${r.dataHora} (${r.unNeg})`).join(' • '),
             controlRef: "Controle INV-03 (Estorno de Docas & Aprovação de Supervisão)"
         });
@@ -394,27 +477,29 @@ function rebuildFromUploadedSheet(rawRows, filename) {
             title: "4. Liberações de Alçada em Compras Suspensas",
             severity: "ALTO",
             badgeClass: "pill-indigo",
+            count: clearanceRecords.length,
             occurrences: `${clearanceRecords.length} liberações`,
-            entity: "LiberacaoUsuario",
+            entities: ["LiberacaoUsuario"],
             searchKey: "",
-            summary: `Uso de credencial para liberação manual de compras e recebimentos com bloqueio ou suspensão sistêmica ativa.`,
+            summary: `Uso de credencial para liberação manual de pedidos de compra ou recebimentos retidos por regras de controle (${clearanceRecords.length} ocorrências).`,
             timestamps: clearanceRecords.slice(0, 3).map(r => `${r.dataHora} (${r.unNeg})`).join(' • '),
             controlRef: "Controle ALC-02 (Alçadas de Desbloqueio Comercial)"
         });
     }
 
-    // 5. Alterações Manuais de Preço de Venda
+    // 5. Alterações de Preço de Venda
     const priceRecords = newRecords.filter(r => r.entidade === 'AlteracaoPreco' || r.entidade === 'PrecoEmbalagemUnidadeNegocio');
     if (priceRecords.length > 0) {
         dynamicFindings.push({
             id: "manual_price",
-            title: "5. Alterações Manuais de Preço de Venda (Origem = M)",
+            title: "5. Alterações de Preço de Venda e Margem",
             severity: "MÉDIO",
             badgeClass: "pill-amber",
+            count: priceRecords.length,
             occurrences: `${priceRecords.length} alterações`,
-            entity: "AlteracaoPreco",
+            entities: ["AlteracaoPreco", "PrecoEmbalagemUnidadeNegocio"],
             searchKey: "",
-            summary: `Modificações diretas de preço de venda e margens por filial em AlteracaoPreco e PrecoEmbalagemUnidadeNegocio.`,
+            summary: `Identificadas ${priceRecords.length} alterações diretas de preço de venda e margens por filial nas entidades AlteracaoPreco e PrecoEmbalagemUnidadeNegocio.`,
             timestamps: `Distribuído entre ${telemetry.periodStart} e ${telemetry.periodEnd}`,
             controlRef: "Controle REV-06 (Governança de Pricing & Margem Bruta)"
         });
@@ -428,10 +513,11 @@ function rebuildFromUploadedSheet(rawRows, filename) {
             title: "6. Edições Diretas de Itens de NFe e Estoque",
             severity: "MÉDIO",
             badgeClass: "pill-amber",
+            count: invoiceStockRecords.length,
             occurrences: `${invoiceStockRecords.length} movimentações`,
-            entity: "ItemNotaFiscal",
+            entities: ["ItemNotaFiscal", "Estoque"],
             searchKey: "",
-            summary: `Edições em itens de notas fiscais com alteração de quantidade, substituição de embalagem e ajustes de saldos físicos.`,
+            summary: `Foram detectadas ${invoiceStockRecords.length} modificações em itens de notas fiscais e saldos físicos de estoque (quantidades, substituição de embalagem e saldos).`,
             timestamps: invoiceStockRecords.slice(0, 3).map(r => r.dataHora).join(' • '),
             controlRef: "Controle FIS-01 (Integridade de Lançamento Fiscal de Entrada)"
         });
@@ -442,42 +528,96 @@ function rebuildFromUploadedSheet(rawRows, filename) {
     if (packagingRecords.length > 0) {
         dynamicFindings.push({
             id: "packaging_change",
-            title: "7. Cadastro e Conversão de Embalagens (Fator CX/UN)",
+            title: "7. Cadastro e Conversão de Embalagens (Fator / EAN)",
             severity: "ALTO",
             badgeClass: "pill-indigo",
+            count: packagingRecords.length,
             occurrences: `${packagingRecords.length} embalagens`,
-            entity: "Embalagem",
-            searchKey: "Embalagem",
-            summary: `Criação e edição de embalagens alterando quantidade por embalagem (fator de conversão 12 para 1), troca de embalagem contida e manipulação de códigos de barras EAN.`,
+            entities: ["Embalagem", "ConversaoProdutoFornecedor"],
+            searchKey: "",
+            summary: `Modificações em ${packagingRecords.length} registros de embalagens envolvendo fatores de conversão, vínculo de embalagem contida e códigos de barras EAN.`,
             timestamps: packagingRecords.slice(0, 3).map(r => r.dataHora).join(' • '),
             controlRef: "Controle CAD-04 (Rastreabilidade de Embalagens, EAN e Fator de Conversão)"
         });
     }
 
     // 8. Upload de Arquivos XML
-    const xmlRecords = newRecords.filter(r => r.entidade === 'Arquivo' || r.valorPosterior.includes('.xml'));
+    const xmlRecords = newRecords.filter(r => r.entidade === 'Arquivo' || (r.valorPosterior && r.valorPosterior.includes('.xml')));
     if (xmlRecords.length > 0) {
         dynamicFindings.push({
             id: "xml_upload",
             title: "8. Importação Manual de Arquivos XML de Nota Fiscal",
             severity: "INFORMATIVO",
             badgeClass: "pill-emerald",
+            count: xmlRecords.length,
             occurrences: `${xmlRecords.length} arquivos XML`,
-            entity: "Arquivo",
+            entities: ["Arquivo"],
             searchKey: ".xml",
-            summary: `Envio e upload manual de arquivos XML de notas fiscais eletrônicas com chaves de 44 dígitos direto para o banco de dados.`,
+            summary: `Upload de ${xmlRecords.length} arquivos XML de documentos fiscais eletrônicos diretamente no ERP.`,
             timestamps: xmlRecords.slice(0, 3).map(r => r.dataHora).join(' • '),
             controlRef: "Controle FIS-08 (Rastreabilidade de Ingestão de DF-e)"
         });
     }
 
-    // Atribuir achados dinâmicos
+    // 9. NOVO ACHADO: Operações Noturnas ou em Fins de Semana (Horário Não Comercial)
+    const afterHoursRecords = newRecords.filter(r => {
+        let time = '';
+        if (r.dataHora.includes('T')) time = (r.dataHora.split('T')[1] || '').substring(0, 8);
+        else time = (r.dataHora.split(' ')[1] || '').substring(0, 8);
+        const h = parseInt(time.substring(0, 2), 10);
+        const parsedD = parseDateComponents(r.dataHora);
+        const isWeekend = parsedD ? (parsedD.getDay() === 0 || parsedD.getDay() === 6) : false;
+        const isNight = (!isNaN(h) && (h >= 22 || h < 6));
+        return isNight || isWeekend;
+    });
+
+    if (afterHoursRecords.length > 0) {
+        dynamicFindings.push({
+            id: "after_hours",
+            title: "9. Atividades Fora do Horário Comercial / Fins de Semana",
+            severity: "ALTO",
+            badgeClass: "pill-amber",
+            count: afterHoursRecords.length,
+            occurrences: `${afterHoursRecords.length} registros`,
+            entities: Array.from(new Set(afterHoursRecords.map(r => r.entidade))).slice(0, 5),
+            searchKey: "",
+            summary: `Identificadas ${afterHoursRecords.length} operações registradas no período noturno (22h às 06h) ou aos fins de semana, constituindo potencial anomalia operacional.`,
+            timestamps: afterHoursRecords.slice(0, 3).map(r => `${r.dataHora} (${r.entidade})`).join(' • '),
+            controlRef: "Controle SEC-05 (Monitoramento de Atividades Extra-Expediente)"
+        });
+    }
+
+    // 10. NOVO ACHADO: Exclusões de Registros no Banco
+    const deletionRecords = newRecords.filter(r => r.operacao === 'Exclusão');
+    if (deletionRecords.length > 0) {
+        dynamicFindings.push({
+            id: "deletions",
+            title: "10. Exclusões de Registros na Base do ERP",
+            severity: "CRÍTICO",
+            badgeClass: "pill-crimson",
+            count: deletionRecords.length,
+            occurrences: `${deletionRecords.length} exclusões`,
+            entities: Array.from(new Set(deletionRecords.map(r => r.entidade))).slice(0, 5),
+            searchKey: "",
+            summary: `Detecção de ${deletionRecords.length} exclusões definitivas de registros no banco de dados, afetando a trilha contínua de integridade.`,
+            timestamps: deletionRecords.slice(0, 3).map(r => `${r.dataHora} (${r.entidade})`).join(' • '),
+            controlRef: "Controle ITGC-02 (Governança e Restrição a Comandos de Exclusão)"
+        });
+    }
+
     FORENSIC_FINDINGS = dynamicFindings;
+
+    // Calcular Hash Canônico do Dataset de Registros
+    const canonicalPayload = newRecords.slice(0, 200).map(r => `${r.dataHora}|${r.unNeg}|${r.entidade}|${r.operacao}|${r.transacao}`).join(';');
+    telemetry.canonicalDataHash = await calculateSHA256(canonicalPayload);
 
     records = newRecords;
     filteredRecords = [...records];
     currentPage = 1;
     selectedRecord = records[0] || null;
+    activeTxFilter = "";
+    activeEntitiesFilter = [];
+    activeFindingFilter = "";
 
     const sourceTag = document.getElementById('sidebar-source-tag');
     if (sourceTag) sourceTag.textContent = filename;
@@ -495,7 +635,7 @@ function rebuildFromUploadedSheet(rawRows, filename) {
 }
 
 /**
- * Exporta a listagem forense atual em arquivo CSV enriquecido com BOM UTF-8.
+ * Exporta a listagem forense atual em arquivo CSV enriquecido com BOM UTF-8 e proteção contra CSV Injection.
  */
 function exportEnrichedCSV() {
     if (filteredRecords.length === 0) {
@@ -503,8 +643,20 @@ function exportEnrichedCSV() {
         return;
     }
 
-    const headers = ["Data_Hora", "Unidade_Negocio", "Usuario", "Entidade", "Operacao", "Resumo_Forense", "Transacao", "Revisao", "Valor_Anterior", "Valor_Posterior"];
-    const csvRows = [headers.join(';')];
+    const headers = [
+        "Data_Hora", 
+        "Unidade_Negocio", 
+        "Usuario", 
+        "Entidade", 
+        "Operacao", 
+        "Resumo_Forense", 
+        "Transacao", 
+        "Revisao", 
+        "Valor_Anterior", 
+        "Valor_Posterior"
+    ];
+    
+    const csvRows = [headers.map(sanitizeCSVField).join(';')];
 
     filteredRecords.forEach(r => {
         const row = [
@@ -513,23 +665,23 @@ function exportEnrichedCSV() {
             r.usuario,
             r.entidade,
             r.operacao,
-            buildRecordSummary(r).replace(/;/g, ','),
+            r.summary || buildRecordSummary(r),
             r.transacao,
             r.revisao,
-            (r.valorAnterior || '').replace(/;/g, '|'),
-            (r.valorPosterior || '').replace(/;/g, '|')
-        ].map(v => `"${String(v).replace(/"/g, '""')}"`);
+            r.valorAnterior || '',
+            r.valorPosterior || ''
+        ].map(sanitizeCSVField);
         csvRows.push(row.join(';'));
     });
 
-    const blob = new Blob(["\uFEFF" + csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob(["\uFEFF" + csvRows.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `Trilha_Forense_Enriquecida_${(telemetry.user || 'AUDITORIA').replace(/\s+/g, '_')}.csv`;
+    a.download = `Trilha_Forense_Enriquecida_${(telemetry.user || 'AUDITORIA').replace(/[^a-zA-Z0-9_-]/g, '_')}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-    notifyToast(`CSV exportado com ${formatNumber(filteredRecords.length)} registros filtrados.`, "success");
+    notifyToast(`CSV exportado com ${formatNumber(filteredRecords.length)} registros filtrados e sanitizados.`, "success");
 }
 
 /**
@@ -553,7 +705,7 @@ function exportNativeXLSX() {
             "Usuário": r.usuario,
             "Entidade": r.entidade,
             "Operação": r.operacao,
-            "Resumo da Alteração": buildRecordSummary(r),
+            "Resumo da Alteração": r.summary || buildRecordSummary(r),
             "ID Transação": r.transacao,
             "Revisão": r.revisao,
             "Valor Anterior": r.valorAnterior,
@@ -564,7 +716,7 @@ function exportNativeXLSX() {
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Evidências Forenses");
 
-        const filename = `Trilha_Forense_${(telemetry.user || 'AUDITORIA').replace(/\s+/g, '_')}.xlsx`;
+        const filename = `Trilha_Forense_${(telemetry.user || 'AUDITORIA').replace(/[^a-zA-Z0-9_-]/g, '_')}.xlsx`;
         XLSX.writeFile(workbook, filename);
         notifyToast(`Planilha Excel (.xlsx) baixada com ${formatNumber(filteredRecords.length)} registros!`, "success");
     } catch (err) {

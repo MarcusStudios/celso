@@ -7,12 +7,15 @@
 const INITIAL_TELEMETRY = {
     user: "Aguardando upload de planilha...",
     userId: "—",
-    erpVersion: "—",
+    erpVersion: "Não informada",
     periodStart: "",
     periodEnd: "",
-    hostname: "—",
+    hostname: "Não identificado",
     osHash: "—",
     mainStation: "—",
+    sourceFileName: "",
+    sourceFileHash: "—",
+    canonicalDataHash: "—",
     totalRecords: 0,
     totalTransactions: 0,
     totalUnits: 0,
@@ -22,13 +25,15 @@ const INITIAL_TELEMETRY = {
     operations: {
         "Exclusão": 0,
         "Edição": 0,
-        "Inclusão": 0
+        "Inclusão": 0,
+        "Indefinida": 0
     },
     daily: [],
     hourly: [],
     units: [],
     entities: [],
-    menus: []
+    menus: [],
+    detectedUsers: []
 };
 
 let FORENSIC_FINDINGS = [];
@@ -40,5 +45,7 @@ let records = [...INITIAL_RECORDS];
 let filteredRecords = [...records];
 let selectedRecord = null;
 let currentPage = 1;
-const PAGE_SIZE = 18;
+let PAGE_SIZE = 18;
 let activeTxFilter = "";
+let activeEntitiesFilter = [];
+let activeFindingFilter = "";

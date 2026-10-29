@@ -1,6 +1,6 @@
 /**
  * AuditTrail GRC — Emissor de Parecer Técnico Pericial (PDF)
- * Incorpora cálculo real de integridade criptográfica SHA-256 via Web Crypto API.
+ * Incorpora cálculo real de integridade criptográfica SHA-256 da fonte e das evidências.
  */
 
 function openPdfModal() {
@@ -22,6 +22,55 @@ function closePdfModal() {
 }
 
 /**
+ * Seleciona uma amostra representativa de evidências críticas para o dossiê pericial,
+ * priorizando os achados de risco detectados.
+ * @returns {Array<object>}
+ */
+function getCriticalEvidenceSample() {
+    if (!records || records.length === 0) return [];
+
+    const criticalSet = new Set();
+    const sample = [];
+
+    // Priorizar registros dos achados de risco
+    const priorityFilterFns = [
+        r => r.entidade === 'AcessoRecursoSistema' && /log\s*de\s*opera/i.test(r.valorPosterior),
+        r => r.entidade === 'Fornecedor' && r.valorPosterior.includes('ignorarConferenciaAutomaticaNotaFiscal=true'),
+        r => r.entidade === 'EstornoItemRecebimentoFisico',
+        r => r.entidade === 'LiberacaoUsuario',
+        r => r.operacao === 'Exclusão',
+        r => r.entidade === 'AlteracaoPreco' || r.entidade === 'PrecoEmbalagemUnidadeNegocio',
+        r => r.entidade === 'Embalagem' || r.entidade === 'ConversaoProdutoFornecedor',
+        r => r.entidade === 'ItemNotaFiscal'
+    ];
+
+    for (const fn of priorityFilterFns) {
+        const matches = records.filter(fn);
+        for (let i = 0; i < Math.min(3, matches.length); i++) {
+            const rec = matches[i];
+            if (!criticalSet.has(rec)) {
+                criticalSet.add(rec);
+                sample.push(rec);
+            }
+        }
+        if (sample.length >= 16) break;
+    }
+
+    // Se houver poucos achados, completar com registros iniciais
+    if (sample.length < 12) {
+        for (const r of records) {
+            if (!criticalSet.has(r)) {
+                criticalSet.add(r);
+                sample.push(r);
+            }
+            if (sample.length >= 16) break;
+        }
+    }
+
+    return sample;
+}
+
+/**
  * Gera e assina criptograficamente o Parecer Técnico Pericial.
  */
 async function generateForensicPDF() {
@@ -31,7 +80,7 @@ async function generateForensicPDF() {
             return;
         }
 
-        notifyToast("Processando parecer técnico e calculando hash SHA-256...", "info");
+        notifyToast("Processando parecer técnico pericial e estruturando cadeia de custódia...", "info");
 
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
@@ -56,7 +105,7 @@ async function generateForensicPDF() {
         doc.setTextColor(255, 255, 255);
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(11);
-        doc.text("PARECER TÉCNICO PERICIAL — AUDITORIA DE LOGS BBY MARCUS", 19, 20);
+        doc.text("PARECER TÉCNICO PERICIAL — AUDITORIA DE LOGS BY MARCUS", 19, 20);
 
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(8);
@@ -70,21 +119,27 @@ async function generateForensicPDF() {
         if (incMachine || incExec) {
             doc.setFillColor(248, 250, 252);
             doc.setDrawColor(226, 232, 240);
-            doc.rect(14, curY, 182, 28, 'FD');
+            doc.rect(14, curY, 182, 34, 'FD');
 
             doc.setTextColor(...slateDark);
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(8.5);
-            doc.text("1. IDENTIFICAÇÃO DO USUÁRIO AUDITADO E ASSINATURA FORENSE DO TERMINAL", 18, curY + 6);
+            doc.text("1. IDENTIFICAÇÃO DO USUÁRIO AUDITADO E CADEIA DE CUSTÓDIA", 18, curY + 6);
 
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(8);
             doc.text(`Colaborador Investigado: ${telemetry.user} (ID Interno: ${telemetry.userId})`, 18, curY + 12);
-            doc.text(`Janela Auditada: ${telemetry.periodStart} a ${telemetry.periodEnd} • Versão ERP: ${telemetry.erpVersion}`, 18, curY + 17);
-            doc.text(`Hostname / Sistema Operacional: ${telemetry.hostname} • Estação Principal: ${telemetry.mainStation}`, 18, curY + 22);
-            doc.text(`Hash Instalação SO: ${telemetry.osHash}`, 115, curY + 12);
+            doc.text(`Janela Auditada: ${telemetry.periodStart || '—'} a ${telemetry.periodEnd || '—'} • Versão ERP: ${telemetry.erpVersion}`, 18, curY + 17);
+            doc.text(`Hostname / Terminal: ${telemetry.hostname} • Estação Principal: ${telemetry.mainStation}`, 18, curY + 22);
+            doc.text(`Arquivo de Origem: ${telemetry.sourceFileName || 'Planilha local'}`, 18, curY + 27);
 
-            curY += 33;
+            // Hash da Fonte
+            doc.setFont('courier', 'bold');
+            doc.setFontSize(7);
+            doc.setTextColor(...brandBlue);
+            doc.text(`SHA-256 ORIGEM: ${telemetry.sourceFileHash || '—'}`, 18, curY + 31.5);
+
+            curY += 39;
         }
 
         // Seção 1B: KPIs Executivos
@@ -110,7 +165,7 @@ async function generateForensicPDF() {
             curY = doc.lastAutoTable.finalY + 7;
         }
 
-        // Seção 2: Matriz de Riscos & 7 Achados
+        // Seção 2: Matriz de Riscos & Achados
         if (incRisks) {
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(9);
@@ -130,10 +185,10 @@ async function generateForensicPDF() {
                 headStyles: { fillColor: navy, textColor: 255, fontSize: 7.5 },
                 bodyStyles: { fontSize: 7.2, textColor: slateDark },
                 columnStyles: {
-                    0: { cellWidth: 42, fontStyle: 'bold' },
+                    0: { cellWidth: 46, fontStyle: 'bold' },
                     1: { cellWidth: 20, halign: 'center', fontStyle: 'bold' },
-                    2: { cellWidth: 22, halign: 'center' },
-                    3: { cellWidth: 98 }
+                    2: { cellWidth: 24, halign: 'center' },
+                    3: { cellWidth: 92 }
                 },
                 theme: 'grid'
             });
@@ -141,7 +196,7 @@ async function generateForensicPDF() {
         }
 
         // Seção 3: Cronologia Diária de Jornada
-        if (incWorkday) {
+        if (incWorkday && telemetry.daily && telemetry.daily.length > 0) {
             if (curY > 215) { doc.addPage(); curY = 18; }
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(9);
@@ -165,24 +220,26 @@ async function generateForensicPDF() {
             curY = doc.lastAutoTable.finalY + 7;
         }
 
-        // Seção 4: Amostra de Evidências Críticas
+        // Seção 4: Amostra Qualificada de Evidências Críticas
         if (incSamples) {
             if (curY > 210) { doc.addPage(); curY = 18; }
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(9);
             doc.setTextColor(...slateDark);
-            doc.text("4. AMOSTRA DE EVIDÊNCIAS CRÍTICAS (DECOMPOSIÇÃO ANTES VS. DEPOIS)", 14, curY);
+            doc.text("4. AMOSTRA DE EVIDÊNCIAS QUALIFICADAS (ACHADOS DE RISCO PRIORITÁRIOS)", 14, curY);
+
+            const criticalSample = getCriticalEvidenceSample();
 
             doc.autoTable({
                 startY: curY + 2,
                 margin: { left: 14, right: 14 },
                 head: [["Data / Hora", "Unid.", "Entidade", "Operação", "Evidência Chave=Valor", "Tx ID"]],
-                body: records.slice(0, 14).map(r => [
+                body: criticalSample.map(r => [
                     r.dataHora,
                     r.unNeg,
                     r.entidade,
                     r.operacao,
-                    buildRecordSummary(r),
+                    r.summary || buildRecordSummary(r),
                     r.transacao
                 ]),
                 headStyles: { fillColor: navy, textColor: 255, fontSize: 7.5 },
@@ -193,10 +250,10 @@ async function generateForensicPDF() {
         }
 
         // Seção 5: Parecer do Auditor e Caixa de Integridade Criptográfica
-        if (curY > 235) { doc.addPage(); curY = 18; }
+        if (curY > 230) { doc.addPage(); curY = 18; }
         doc.setFillColor(248, 250, 252);
         doc.setDrawColor(203, 213, 225);
-        doc.rect(14, curY, 182, 32, 'FD');
+        doc.rect(14, curY, 182, 34, 'FD');
 
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(8);
@@ -208,15 +265,12 @@ async function generateForensicPDF() {
         const splitNotes = doc.splitTextToSize(auditorNotes || "Sem observações adicionais.", 174);
         doc.text(splitNotes, 18, curY + 11.5);
 
-        // CÁLCULO REAL DE HASH SHA-256 DO CONTEÚDO
-        // Geramos a representação do PDF em arraybuffer e calculamos o hash criptográfico real
-        const pdfArrayBuffer = doc.output('arraybuffer');
-        const realHash = await calculateSHA256(pdfArrayBuffer);
-
+        // Integridade Criptográfica da Fonte e do Dataset
         doc.setFont('courier', 'bold');
         doc.setFontSize(6.8);
         doc.setTextColor(...brandBlue);
-        doc.text(`SHA-256 VERIFICATION HASH: ${realHash}`, 18, curY + 28);
+        doc.text(`HASH SHA-256 DA PLANILHA ORIGINAL: ${telemetry.sourceFileHash || '—'}`, 18, curY + 26);
+        doc.text(`HASH SHA-256 DO DATASET CANÔNICO:   ${telemetry.canonicalDataHash || '—'}`, 18, curY + 30);
 
         // Numeração de Páginas
         const totalPages = doc.internal.getNumberOfPages();
@@ -225,15 +279,15 @@ async function generateForensicPDF() {
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(7);
             doc.setTextColor(...slateMuted);
-            doc.text(`Auditoria de LOGS bby Marcus • Dossiê ${telemetry.user} • Página ${p} de ${totalPages}`, 14, 290);
-            doc.text("AUTENTICADO COM ASSINATURA CRIPTOGRÁFICA SHA-256 REAL", 112, 290);
+            doc.text(`Auditoria de LOGS by Marcus • Dossiê ${telemetry.user} • Página ${p} de ${totalPages}`, 14, 290);
+            doc.text("INTEGRIDADE ASSEGURADA POR HASH SHA-256 DE CUSTÓDIA", 108, 290);
         }
 
         // Salvar arquivo
         const sanitizedUserName = (telemetry.user || "AUDITORIA").replace(/[^a-zA-Z0-9_-]/g, '_');
         doc.save(`Parecer_Auditoria_Forense_${sanitizedUserName}.pdf`);
         closePdfModal();
-        notifyToast(`PDF emitido com sucesso! Hash: ${realHash.substring(0, 16)}...`, "success");
+        notifyToast("Parecer Técnico Pericial emitido com sucesso!", "success");
     } catch (err) {
         console.error("Erro na geração do PDF:", err);
         notifyToast("Erro ao gerar o PDF. Verifique o console.", "error");

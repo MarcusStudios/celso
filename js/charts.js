@@ -172,8 +172,8 @@ function renderOverviewCharts() {
                         backgroundColor: 'rgba(37, 99, 235, 0.08)',
                         borderWidth: 2,
                         fill: true,
-                        pointBackgroundColor: hourlyArr.map(h => h.hour === '15h' ? '#BE123C' : '#2563EB'),
-                        pointRadius: hourlyArr.map(h => h.hour === '15h' ? 5 : 3),
+                        pointBackgroundColor: hourlyArr.map(h => (topHour && h.hour === topHour.hour && topHour.count > 0) ? '#BE123C' : '#2563EB'),
+                        pointRadius: hourlyArr.map(h => (topHour && h.hour === topHour.hour && topHour.count > 0) ? 5 : 3),
                         tension: 0.3
                     }]
                 },
